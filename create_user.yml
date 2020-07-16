@@ -1,0 +1,98 @@
+---
+- hosts: 192.168.122.196
+  sudo: yes
+  remote_user: dk
+  tasks:
+
+    - name: "Create hell_cat group"
+      group: >
+        name="hell_cat"
+        state="present"
+
+    - name: "Create hell_cat user - 'hell_cat_user'"
+      user: >
+        name="hell_cat"
+        group="hell_cat"
+        home="/home/hell_cat"
+        createhome=yes
+        move_home=yes
+        comment="hell_cat user"
+        shell="/bin/bash"
+        state="present"  
+
+    - name: "Create directory /etc/sudoers.d"
+      file: >
+        path="/etc/sudoers.d"
+        state="directory"
+        owner="root"
+        group="root"
+        mode=0755  
+
+    - name: "Include /etc/sudoers.d in sudoers file"
+      lineinfile: >
+        dest="/etc/sudoers"
+        line="#includedir /etc/sudoers.d"
+        state="present"
+        validate='/usr/sbin/visudo -cf %s'  
+
+    - name: "Remove requiretty in /etc/sudoers"
+      lineinfile: >
+        dest="/etc/sudoers"
+        regexp="^\s*Defaults\s*requiretty"
+        state="absent"
+        validate='/usr/sbin/visudo -cf %s'  
+
+    - name: "Grant sudo permission (full access)"
+      template: >
+        src="sudoers_file.j2"
+        dest="/etc/sudoers.d/hell_cat_user"
+        owner="root"
+        group="root"
+        mode="0400"  
+
+    - name: "Ensure home directory ownership is correct"
+      file: >
+        path="/home/hell_cat/"
+        owner="hell_cat"
+        group="hell_cat"
+        state="directory"  
+
+    - name: "Create .ssh directory"
+      file: >
+        path="/home/hell_cat/.ssh"
+        owner="hell_cat"
+        group="hell_cat"
+        mode="0700"
+        state="directory"  
+
+    - name: "Setup key based ssh login"
+      copy: >
+        src="authorized_keys"
+        dest="/home/hell_cat/.ssh/authorized_keys"
+        owner="hell_cat"
+        group="hell_cat"
+        mode="0600"  
+
+    - name: "Setup hell_cat public key"
+      copy: >
+        src="id_rsa.pub"
+        dest="/home/hell_cat/.ssh/id_rsa.pub"
+        owner="hell_cat"
+        group="hell_cat"
+        mode="0600"
+
+    - name: "Setup hell_cat private key"
+      copy: >
+        src="id_rsa"
+        dest="/home/hell_cat/.ssh/id_rsa"
+        owner="hell_cat"
+        group="hell_cat"
+        mode="0600"
+
+    - name: "Setup hell_cat ssh config"
+      copy: >
+        src="config"
+        dest="/home/hell_cat/.ssh/config"
+        owner="hell_cat"
+        group="hell_cat"
+        mode="0600"

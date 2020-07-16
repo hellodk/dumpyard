@@ -1,0 +1,6 @@
+# fluentd/Dockerfile
+FROM fluent/fluentd:v0.12-debian
+RUN ["gem", "install", "fluent-plugin-elasticsearch", "--no-rdoc", "--no-ri", "--version", "1.9.7"]
+# RUN ["/usr/sbin/td-agent-gem", "install", "fluent-plugin-mongo", "--no-rdoc", "--no-ri"]
+RUN fluent-gem install fluent-plugin-mongo
+#gem install fluent-plugin-mongo -v 0.7.10

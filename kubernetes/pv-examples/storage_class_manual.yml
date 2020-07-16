@@ -1,0 +1,10 @@
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: manual
+provisioner: kubernetes.io/local
+reclaimPolicy: Delete
+allowVolumeExpansion: true
+mountOptions:
+  - debug
+volumeBindingMode: Immediate

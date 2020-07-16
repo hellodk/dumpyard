@@ -1,0 +1,62 @@
+version: '2'
+services:
+  web:
+    image: hellodk/static-web-app
+    container_name: web
+    ports:
+      - "80:80"
+    links:
+      - fluentd
+    logging:
+      driver: "fluentd"
+      options:
+        fluentd-address: localhost:24224
+        tag: http.access
+    volumes:
+      - data-volume:/var/log/nginx
+
+  fluentd:
+    image: hellodk/fluentd:latest
+    container_name: fluentd
+  # build: ./fluentd
+    volumes:
+      - ./fluentd/conf:/fluentd/etc
+      - data-volume:/data
+    links:
+      - "elasticsearch"
+      - "mongo"
+    ports:
+      - "24224:24224"
+      - "24224:24224/udp"
+
+  elasticsearch:
+    image: elasticsearch:5.3.0
+    expose:
+      - 9200
+    ports:
+      - "9200:9200"
+
+  mongo:
+    image: mongo:latest
+    container_name: mongo
+    #    environment:
+    # - MONGO_INITDB_ROOT_USERNAME=admin
+    # - MONGO_INITDB_ROOT_PASSWORD=mongoadmin
+    # - MONGODB_USERNAME=admin
+    # - MONGODB_PASSWORD=mongoadmin
+    # - MONGODB_DATABASE=webapp
+    ports:
+      - 27017
+    volumes:
+      - mongo-volume:/var/lib/mongo
+
+  kibana:
+    image: kibana:5.3.0
+    links:
+      - "elasticsearch"
+    ports:
+      - "5601:5601"
+
+volumes:
+  data-volume: {}
+  mongo-volume: {}

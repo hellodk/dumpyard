@@ -1,0 +1,34 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: ingress-prometheus
+  annotations:
+    ingress.kubernetes.io/rewrite-target: /
+spec:
+  rules:
+  - http:
+      paths:
+        - path: /graph
+          backend:
+            serviceName: monitoring-grafana
+            servicePort: 80
+        - path: /prom-alertmanager
+          backend:
+            serviceName: prometheus-operator-alertmanager
+            servicePort: 9093
+        - path: /prom-grafana
+          backend:
+            serviceName: prometheus-operator-grafana
+            servicePort: 80
+        - path: /prom-operator-metrics
+          backend:
+            serviceName: prometheus-operator-kube-state-metrics
+            servicePort: 8080
+        - path: /prom-operator
+          backend:
+            serviceName: prometheus-operator-operator
+            servicePort: 8080
+        - path: /prom-operator-prom
+          backend:
+            serviceName: prometheus-operator-prometheus
+            servicePort: 8080

@@ -1,0 +1,37 @@
+version: '3'
+services:
+  web:
+    image: hellodk/static-web-app:latest
+    ports:
+      - 80:80
+    volumes:
+      - data-volume:/var/log/nginx
+    links:
+      - fluentd
+    logging:
+      driver: "fluentd"
+      options:
+        fluentd-address: localhost:24224
+        tag: httpd.access
+
+  db:
+    image: mongo:latest
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=root
+      - MONGO_INITDB_ROOT_PASSWORD=mongoadmin
+      - MONGODB_USERNAME=admin
+      - MONGODB_PASSWORD=mongoadmin
+      - MONGODB_DATABASE=nginxdata
+    ports:
+      - 27017
+    volumes:
+      - mongo-volume:/var/lib/mongo
+    links:
+      - web
+  fluentd:
+    image: hellodk/fluentd:latest
+    volumes:
+      - data-volume:/data
+volumes:
+  data-volume: {}
+  mongo-volume: {}

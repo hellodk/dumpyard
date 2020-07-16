@@ -1,0 +1,4 @@
+alias gitdir=cd /home/dk/Documents/git
+alias virdir=cd /home/dk/Documents/virtual_machines
+alias cls=clear
+alias ltrh="ls -ltrh"

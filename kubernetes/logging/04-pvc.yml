@@ -1,0 +1,14 @@
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: data-pv-claim
+  namespace: sock-shop  
+  labels:
+    app: elasticsearch
+spec:
+  accessModes:
+    - "ReadWriteOnce"
+  storageClassName: manual
+  resources:
+    requests:
+      storage: 10Gi

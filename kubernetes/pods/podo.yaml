@@ -1,0 +1,52 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ipconfig-deployment
+  labels:
+    app: ip-config
+spec:
+  replicas: 4
+  selector:
+    matchLabels:
+      app: ip-config
+  template:
+    metadata:
+      labels:
+        app: ip-config
+    spec:
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchExpressions:
+                  - key: "app"
+                    operator: In
+                    values:
+                    - ip-config
+              topologyKey: "kubernetes.io/hostname"
+      containers:
+      - name: app1
+        image: hellodk/svc1:v1
+        ports:
+        - containerPort: 8086
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: ip-config
+  name: ips-service
+spec:
+  ports:
+  - nodePort: 32417
+    port: 8086
+    protocol: TCP
+    targetPort: 8086
+  selector:
+    app: ip-config
+  sessionAffinity: None
+  type: NodePort
+status:
+  loadBalancer: {}

@@ -1,0 +1,53 @@
+all_hosts += [
+{% for host in "{{ groups['kafka'] }}" %}
+  "{{ hostvars[host].inventory_hostname }}{{ hostvars[host].ansible_default_ipv4.address }}|cmk-agent|prod|lan|tcp|wato|/" + FOLDER_PATH + "/",
+{% endfor %}
+] 
+
+
+{% for svr in groups.'kafka' %} 
+  {% if not svr == inventory_hostname %} 
+  peer svr
+  This is server svr
+  {% endif %} 
+    This is server svr
+{% endfor %}
+
+
+{{ hostvars['kafka']['ansible_eth1']['ipv4']['address'] }}
+
+"{{ inventory_hostname }}"
+
+
+{% for svr in groups.kafka %} 
+  {% if not svr == inventory_hostname %} 
+  peer svr
+  This is server svr
+  {% endif %} 
+    This is server svr
+{% endfor %}
+
+{% for group in group_names %}
+    {{ group }}
+{% endfor %}
+
+{% for id in range(1,5) %}  
+192.168.0.{{ id }} client{{ "%02d"|format(id-200) }}.vpn  
+{% endfor %}
+
+{{ groups["kafka"] | join(",") }}
+{{ groups["kafka"] }}
+
+{% for id in range(1,5) %}
+192.168.0.{{ id }} client{{ "%02d"|format(id-200) }}.vpn  
+{% endfor %}
+
+{% if groups["kafka"] %}
+{% for ip in groups["kafka"] %}
+{{ ip }}
+{% endfor %}
+{% endif %}
+
+zookeeper.connect={% for i in range(0, groups['kafka']|length) %}{{ groups['kafka'][i] }}:2181,{% endfor %}
+{% for i in range(0, groups['kafka']|length) %}
+{{ groups['kafka'][i] }}:2181,{% endfor %}

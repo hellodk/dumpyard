@@ -1,0 +1,17 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: ingress-kube-system
+  annotations:
+    ingress.kubernetes.io/rewrite-target: /
+    nginx.ingress.kubernetes.io/rewrite-target: "/"
+    nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
+  namespace: kube-system
+spec:
+  rules:
+  - http:
+      paths:
+        - path: /kd
+          backend:
+            serviceName: kubernetes-dashboard
+            servicePort: 443

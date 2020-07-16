@@ -1,0 +1,16 @@
+Recursion Problems:
+-------------------
+Tower of Hanoi
+Check if array is sorted
+
+Backtracking Problems:
+----------------------
+Generate all strings of n bits
+
+
+
+Virtualenv:
+----------
+sudo pip install virtualenv
+virtualenv <virtual environment name>
+now to activate, do source <apth to virtual environment name>/bin/activate

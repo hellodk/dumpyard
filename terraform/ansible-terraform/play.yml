@@ -1,0 +1,30 @@
+---
+- name: install app
+  hosts: terra_ansible_host
+  user: ubuntu
+  gather_facts: no
+  become: true
+
+  roles:
+    # - create_elb
+    # - spawn_ec2_instance
+    - company_news
+#    - add_ec2_to_elb
+
+  tasks:
+    - name: Install git.
+      package: name={{item}} state=present update_cache=true
+      with_items:
+        - git
+        - htop
+
+    - name: Install a list of packages
+      package:
+        name: apache2
+        state: present
+
+    - name: start apache2
+      service:
+        name: apache2
+        state: started
+

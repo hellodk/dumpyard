@@ -1,0 +1,25 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: app1-node-selector
+  labels:
+    app: app1-node-selector
+spec:
+  containers:
+  - name: app1-node-selector
+    image: hellodk/svc1:v1
+    imagePullPolicy: IfNotPresent
+    ports:
+    - containerPort: 8086
+    readinessProbe:
+      tcpSocket:
+        port: 8086
+      initialDelaySeconds: 5
+      periodSeconds: 10
+    livenessProbe:
+      tcpSocket:
+        port: 8086
+      initialDelaySeconds: 15
+      periodSeconds: 20
+  nodeSelector:
+    app: webapps

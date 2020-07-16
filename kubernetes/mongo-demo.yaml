@@ -1,0 +1,22 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: mongo
+spec:
+  template:
+    metadata:
+      labels:
+        app: mongo
+    spec:
+      containers:
+      - image: mongo:latest
+        name: mongo
+        ports:
+        - containerPort: 27017
+        volumeMounts:
+        - name: mongo-initdb
+          mountPath: /docker-entrypoint-initdb.d
+      volumes:
+      - name: mongo-initdb
+        configMap:
+          name: mongo-initdb

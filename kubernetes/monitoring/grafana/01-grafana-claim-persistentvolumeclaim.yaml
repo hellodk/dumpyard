@@ -1,0 +1,30 @@
+kind: PersistentVolume
+apiVersion: v1
+metadata:
+  name: grafana-volume
+  namespace: monitoring  
+  labels:
+    type: local
+spec:
+#  storageClassName: manual
+  capacity:
+    storage: 20Gi
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: "/mnt/data"
+
+---
+
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: grafana-claim
+  namespace: monitoring
+spec:
+#  storageClassName: manual
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 20Gi

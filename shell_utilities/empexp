@@ -1,0 +1,50 @@
+#!/bin/bash
+
+### BEGIN INIT INFO
+# Provides:        tomcat7
+# Required-Start:  $network
+# Required-Stop:   $network
+# Default-Start:   2 3 4 5
+# Default-Stop:    0 1 6
+# Short-Description: Start/Stop Tomcat server
+### END INIT INFO
+
+# file="/opt/tomcat/"
+TOMCAT_USER="tomcat"
+
+#if [ ! -e "$file" ]; then
+#       touch file
+#else
+#        echo "File present"
+#fi
+
+# PATH=/sbin:/bin:/usr/sbin:/usr/bin
+# executable_jar=/
+
+# sh /opt/iptables.sh
+# mount /dev/xvdb /mnt/local 
+# /etc/init.d/filebeat start
+# swapon /mnt/local/swapfile1 
+#su  tomcat
+#sh /opt/tomcat/bin/startup.sh
+
+start() {
+ sh /opt/iptables.sh
+ /etc/init.d/filebeat start
+ swapon /mnt/local/swapfile1 
+ /bin/su -l ${TOMCAT_USER} /opt/tomcat/bin/startup.sh 
+}
+
+stop() {
+/bin/su -l ${TOMCAT_USER} /opt/tomcat/bin/shutdown.sh
+}
+
+case $1 in
+  start|stop) $1;;
+  restart) stop; start;;
+  *) echo "Run as $0 <start|stop|restart>"; exit 1;;
+esac
+
+# Change its permissions and add the correct symlinks automatically:
+# chmod 755 /etc/init.d/tomcat7
+# update-rc.d tomcat7 defaults

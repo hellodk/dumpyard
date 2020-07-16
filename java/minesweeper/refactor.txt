@@ -1,0 +1,24 @@
+source: class Main.java, line 19, 23
+smell: Bloaters - Long function - startGame
+problem: startGame() is a long function
+solution: Introduced 3 new methods in line 62 clear() and 67 printInstructions() and selectLevel()
+
+source: class Game.java, line 49
+smell: Bloaters Long Function - play
+problem: play() is a long function
+solution: Introduced new functions checkPlacingFlag()
+
+source: Multiple files using 26 as iteration
+smell: Bloater -
+problem: Multiple iterations with 26 across multiple classes
+solution: Use a constant, created a new package and an Interface constant
+
+source: Player.java howToPlay, line 110
+smell: Bloaters - Long function - howToPlay()
+problem: howToPlay() is a long function
+solution: Added new function printInstructions()
+
+source: PlayerRepo.java selectProfile
+smell: Bloaters - Long Function - loadOrNewPrompt()
+problem: loadOrNewPrompt() is a long function
+solution: Created one more function selectProfile()

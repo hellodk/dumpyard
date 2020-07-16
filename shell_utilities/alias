@@ -1,0 +1,14 @@
+alias l="ls -ltrh"
+alias c="clear"
+alias h="cd ~"
+alias v="cd /home/dk/Documents/virtual_machines"
+alias g="cd /home/dk/Documents/git"
+alias virdir="cd /home/dk/Documents/virtual_machines"
+alias gitdir="cd /home/dk/Documents/git"
+alias cls=clear
+alias ltrh="ls -ltrh"
+alias vs="vagrant global-status --prune"
+alias enms="sudo modprobe -r psmouse && sudo modprobe psmouse"
+alias enwifi="cd /home/dk/Documents/git/rtl8821ce && sudo make all && sudo make install && sudo modprobe -a 8821ce"
+
+export PATH=$PATH:/usr/local/go/bin

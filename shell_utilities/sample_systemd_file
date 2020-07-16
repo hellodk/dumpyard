@@ -1,0 +1,20 @@
+[Unit]
+Description=flask_app
+
+[Service]
+Type=simple
+User=vagrant
+Group=vagrant
+# Load env vars from /etc/default/ and /etc/sysconfig/ if they exist.
+# Prefixing the path with '-' makes it try to load, but if the file doesn't
+# exist, it continues onward.
+EnvironmentFile=-/etc/default/logstash
+EnvironmentFile=-/etc/sysconfig/logstash
+ExecStart=/usr/bin/python /home/ec2-user/app.py
+Restart=always
+WorkingDirectory=/home/ec2-user/
+Nice=19
+LimitNOFILE=16384
+
+[Install]
+WantedBy=multi-user.target

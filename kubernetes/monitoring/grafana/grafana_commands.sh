@@ -1,0 +1,1 @@
+grafana-cli plugins install kubernetes-app

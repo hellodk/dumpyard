@@ -1,0 +1,24 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: svc1_probe_pod
+  labels:
+    app: svc1_probe_pod
+spec:
+  containers:
+  - name: svc1_probe_pod
+    image: hellodk/svc1:v1
+    ports:
+      - name: liveness-port
+        containerPort: 8086
+        hostPort: 8086
+    readinessProbe:
+      tcpSocket:
+        port: liveness-port
+      initialDelaySeconds: 5
+      periodSeconds: 10
+    livenessProbe:
+      tcpSocket:
+        port: liveness-port
+      initialDelaySeconds: 15
+      periodSeconds: 20

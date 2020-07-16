@@ -1,0 +1,42 @@
+Vagrant.configure("2") do |config|
+config.vm.synced_folder "/home/dk/Documents/git/dumpyard/kubernetes", "/home/vagrant/synced_folder", :mount_options => ["dmode=777", "fmode=666"]
+config.vm.provision "shell", inline: "yum install -y epel-release git telnet wget curl tree ntp vim net-tools && yum update -y && systemctl enable ntpd && sed -i 's/PasswordAuthentication no/PasswordAuthentication yes/g' /etc/ssh/sshd_config && systemctl restart sshd"
+  config.vm.define "kubem" do |kubem|
+    kubem.vm.box = "centos/7"
+    # kubem.vm.box = "bento/ubuntu-18.04"
+    kubem.vm.hostname = 'kubem'
+    kubem.vm.network :private_network, bridge: "en0: Wi-Fi (AirPort)", ip: "192.168.10.50"
+    kubem.vm.provider :virtualbox do |v|
+      v.customize ["modifyvm", :id, "--natdnshostresolver1", "on"]
+      v.customize ["modifyvm", :id, "--memory", 2048]
+      v.customize ["modifyvm", :id, "--cpus", 2]
+      v.customize ["modifyvm", :id, "--name", "kubem"]
+  end
+end
+
+
+  config.vm.define "worker1" do |worker1|
+    worker1.vm.box = "centos/7"
+    worker1.vm.hostname = 'worker1'
+    worker1.vm.network :private_network, bridge: "en0: Wi-Fi (AirPort)", ip: "192.168.10.51"
+    worker1.vm.provider :virtualbox do |v|
+      v.customize ["modifyvm", :id, "--natdnshostresolver1", "on"]
+      v.customize ["modifyvm", :id, "--memory", 4096]
+      v.customize ["modifyvm", :id, "--cpus", 2]
+      v.customize ["modifyvm", :id, "--name", "worker1"]
+    end
+  end
+
+  config.vm.define "worker2" do |worker2|
+    worker2.vm.box = "centos/7"
+    worker2.vm.hostname = 'worker2'
+    worker2.vm.network :private_network, bridge: "en0: Wi-Fi (AirPort)", ip: "192.168.10.52"
+    worker2.vm.provider :virtualbox do |v|
+      v.customize ["modifyvm", :id, "--natdnshostresolver1", "on"]
+      v.customize ["modifyvm", :id, "--memory", 4096]
+      v.customize ["modifyvm", :id, "--cpus", 2]
+      v.customize ["modifyvm", :id, "--name", "worker2"]
+    end
+
+end
+end

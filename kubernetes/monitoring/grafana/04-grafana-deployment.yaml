@@ -1,0 +1,78 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: monitoring  
+  labels:
+    app: grafana
+  name: grafana-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      component: grafana
+  template:
+    metadata:
+      labels:
+        component: grafana
+    spec:
+      volumes:
+      - name: grafana-claim
+        persistentVolumeClaim:
+          claimName: grafana-claim
+      - name: grafana-datasources
+        configMap:
+            defaultMode: 420
+            name: grafana-datasources
+      containers:
+      - name: grafana
+        image: grafana/grafana:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 3000
+        env:
+          - name: GF_INSTALL_PLUGINS
+            value: 'grafana-piechart-panel,grafana-clock-panel'
+        resources:
+          limits:
+            cpu: 500m
+            memory: 2500Mi
+          requests:
+            cpu: 100m
+            memory: 100Mi
+      initContainers:
+      - name: take-data-dir-ownership
+        image: alpine:3.6
+        # Give `grafana` user (id 472) permissions a mounted volume
+        # https://github.com/grafana/grafana-docker/blob/master/Dockerfile
+        command:
+        - chown
+        - -R  
+        - 472:472
+        - /var/lib/grafana
+        volumeMounts:
+        - mountPath: /var/lib/grafana
+          name: grafana-claim
+        - mountPath: /etc/grafana/provisioning/datasources
+          name: grafana-datasources
+          readOnly: false
+
+        # - name: data
+        #   mountPath: /var/lib/grafana
+        # livenessProbe:
+        #   exec:
+        #     command:
+        #       - wget 
+        #       - localhost:3000
+        #       - --spider
+        #   initialDelaySeconds: 30
+        #   periodSeconds: 30
+        # readinessProbe:
+        #   exec:
+        #     command:
+        #       - wget 
+        #       - localhost:3000
+        #       - --spider
+          # initialDelaySeconds: 120
+          # periodSeconds: 5
+
+ 

@@ -1,0 +1,27 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: app
+  labels:
+    app: app
+spec:
+  containers:
+  - name: devtoo-com
+    env:
+    - name: DATABASE_URL
+      value: postgresql://user1:password1@database/dev_to_db
+    image: registry.hub.docker.com/devtoo.com/app:v9001
+    ports:
+    - containerPort: 3001
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: devtoo-com
+spec:
+  selector:
+    app: app
+  ports:
+  - protocol: TCP
+    port: 3001
+    targetPort: 3001

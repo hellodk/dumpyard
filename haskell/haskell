@@ -1,0 +1,29 @@
+Haskell:
+--------
+concentrate more on expressiveness, modularity, and composability of the programs
+interested more on the what of the program and not really on the how of the program
+
+
+Installation of Haskell:
+------------------------
+sudo yum install epel-release -y
+sudo yum upgrade -y
+sudo yum update -y
+sudo yum install haskell-platform -y
+
+Install stack:
+--------------
+curl -sSL https://get.haskellstack.org/ | sh
+stack --version
+stack setup 8.4.4
+
+Haskell Projects:
+-----------------
+Recommendation Engine
+
+
+Commands:
+---------
+Prelude Data.Char> :t 'a'
+'a' :: Char
+

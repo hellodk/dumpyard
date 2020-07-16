@@ -1,0 +1,32 @@
+apiVersion: v1
+items:
+- apiVersion: autoscaling/v1
+  kind: HorizontalPodAutoscaler
+  metadata:
+    annotations:
+      autoscaling.alpha.kubernetes.io/conditions: '[{"type":"AbleToScale","status":"True","lastTransitionTime":"2020-02-18T14:42:25Z","reason":"SucceededGetScale","message":"the
+        HPA controller was able to get the target''s current scale"},{"type":"ScalingActive","status":"False","lastTransitionTime":"2020-02-18T14:42:25Z","reason":"FailedGetResourceMetric","message":"the
+        HPA was unable to compute the replica count: unable to get metrics for resource
+        cpu: unable to fetch metrics from resource metrics API: the server could not
+        find the requested resource (get pods.metrics.k8s.io)"}]'
+    creationTimestamp: "2020-02-18T14:42:10Z"
+    name: kuard
+    namespace: default
+    resourceVersion: "1358"
+    selfLink: /apis/autoscaling/v1/namespaces/default/horizontalpodautoscalers/kuard
+    uid: 08801041-2c04-4751-a97b-400a901cf4c6
+  spec:
+    maxReplicas: 5
+    minReplicas: 2
+    scaleTargetRef:
+      apiVersion: extensions/v1beta1
+      kind: ReplicaSet
+      name: kuard
+    targetCPUUtilizationPercentage: 80
+  status:
+    currentReplicas: 5
+    desiredReplicas: 0
+kind: List
+metadata:
+  resourceVersion: ""
+  selfLink: ""
