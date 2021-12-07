@@ -1,0 +1,82 @@
+Deploy the k8s asg policy:
+---------------------------
+mkdir ~/environment/cluster-autoscaler
+
+cat <<EoF > ~/environment/cluster-autoscaler/k8s-asg-policy.json
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Action": [
+                "autoscaling:DescribeAutoScalingGroups",
+                "autoscaling:DescribeAutoScalingInstances",
+                "autoscaling:DescribeLaunchConfigurations",
+                "autoscaling:DescribeTags",
+                "autoscaling:SetDesiredCapacity",
+                "autoscaling:TerminateInstanceInAutoScalingGroup",
+                "ec2:DescribeLaunchTemplateVersions"
+            ],
+            "Resource": "*",
+            "Effect": "Allow"
+        }
+    ]
+}
+EoF
+
+aws iam create-policy   \
+  --policy-name k8s-asg-policy \
+  --policy-document file://~/environment/cluster-autoscaler/k8s-asg-policy.json
+
+
+eksctl utils associate-iam-oidc-provider --region=ap-south-1 --cluster=kubeflow --approve
+[ℹ]  eksctl version 0.29.2
+[ℹ]  using region ap-south-1
+[ℹ]  will create IAM Open ID Connect provider for cluster "kubeflow" in "ap-south-1"
+[✔]  created IAM Open ID Connect provider for cluster "kubeflow" in "ap-south-1"
+dk@typHooN:~/Documents/git/dumpyard/kubernetes/eks$ 
+
+
+eksctl create iamserviceaccount \
+    --name cluster-autoscaler \
+    --namespace kube-system \
+    --cluster kubeflow \
+    --attach-policy-arn "arn:aws:iam::${ACCOUNT_ID}:policy/k8s-asg-policy" \
+    --approve \
+    --override-existing-serviceaccounts
+
+
+Deploy the cluster autoscaler:
+------------------------------
+kubectl apply -f https://raw.githubusercontent.com/kubernetes/autoscaler/master/cluster-autoscaler/cloudprovider/aws/examples/cluster-autoscaler-autodiscover.yaml
+
+kubectl -n kube-system annotate deployment.apps/cluster-autoscaler cluster-autoscaler.kubernetes.io/safe-to-evict="false"
+
+kubectl -n kube-system edit deployment.apps/cluster-autoscaler
+
+Edit the cluster-autoscaler container command to replace <YOUR CLUSTER NAME> with your cluster's name, and add the following options.
+
+<--balance-similar-node-groups>
+<--skip-nodes-with-system-pods=false>
+
+eg:
+    spec:
+      containers:
+      - command:
+        - ./cluster-autoscaler
+        - --v=4
+        - --stderrthreshold=info
+        - --cloud-provider=aws
+        - --skip-nodes-with-local-storage=false
+        - --expander=least-waste
+        - --node-group-auto-discovery=asg:tag=k8s.io/cluster-autoscaler/enabled,k8s.io/cluster-autoscaler/<<YOUR CLUSTER NAME>>
+        - --balance-similar-node-groups
+        - --skip-nodes-with-system-pods=false
+
+kubectl -n kube-system set image deployment.apps/cluster-autoscaler cluster-autoscaler=eu.gcr.io/k8s-artifacts-prod/autoscaling/cluster-autoscaler:v1.18.2
+
+kubectl -n kube-system set image deployment.apps/cluster-autoscaler cluster-autoscaler=k8s.gcr.io/autoscaling/cluster-autoscaler:v1.18.2
+
+View Cluster Autoscaler Logs:
+-----------------------------
+kubectl -n kube-system logs -f deployment.apps/cluster-autoscaler
+

@@ -1,12 +1,83 @@
 apiVersion: eksctl.io/v1alpha5
 kind: ClusterConfig
 metadata:
-  name: basic-eks
+  name: kubeflow
   region: ap-south-1
+  tags:
+    'billing_unit': 'dsteam'
+    'k8s.io/cluster-autoscaler/enabled': 'true'
+    'k8s.io/cluster-autoscaler/kubeflow': 'owned'    
+
+
+
+
 nodeGroups:
   - name: ng-1
-    instanceType: t2.micro
-    desiredCapacity: 5
+    instanceType: t3.medium
+    desiredCapacity: 1
+    maxSize: 3
+    minSize: 1
+    iam:
+      withAddonPolicies:
+        imageBuilder: true
+        AutoScaler: true
+        ExternalDNS: true
+    tags:
+      'billing_unit': 'dsteam'
+      'k8s.io/cluster-autoscaler/enabled': 'true'
+      'k8s.io/cluster-autoscaler/kubeflow': 'owned'
+
   - name: ng-2
-    instanceType: t2.micro
-    desiredCapacity: 2
+    instanceType: t3.medium
+    desiredCapacity: 1
+    maxSize: 3
+    minSize: 1
+    iam:
+      withAddonPolicies:
+        imageBuilder: true
+        AutoScaler: true
+        ExternalDNS: true
+    tags:
+      'billing_unit': 'dsteam'
+      'k8s.io/cluster-autoscaler/enabled': 'true'
+      'k8s.io/cluster-autoscaler/kubeflow': 'owned'
+
+
+  - name: ng-3
+    minSize: 1
+    maxSize: 3
+    iam:
+      withAddonPolicies:
+        imageBuilder: true
+        AutoScaler: true
+        ExternalDNS: true
+    tags:
+      'billing_unit': 'dsteam'
+      'k8s.io/cluster-autoscaler/enabled': 'true'
+      'k8s.io/cluster-autoscaler/kubeflow': 'owned'
+    instancesDistribution:
+      maxPrice: 0.05
+      instanceTypes: ["t3.small", "t3.medium"] # At least one instance type should be specified
+      onDemandBaseCapacity: 0
+      onDemandPercentageAboveBaseCapacity: 50
+      spotInstancePools: 2
+
+  # - name: ng-gpu
+  #   instanceType: mixed
+  #   desiredCapacity: 1
+  #   instancesDistribution:
+  #     instanceTypes:
+  #       - p2.xlarge
+  #       - p2.8xlarge
+  #       - p2.16xlarge
+  #     maxPrice: 0.50
+
+  # - name: ng-capacity-optimized
+  #   minSize: 2
+  #   maxSize: 5
+  #   instancesDistribution:
+  #     maxPrice: 0.017
+  #     instanceTypes: ["t3.small", "t3.medium"] # At least one instance type should be specified
+  #     onDemandBaseCapacity: 0
+  #     onDemandPercentageAboveBaseCapacity: 50
+  #     spotAllocationStrategy: "capacity-optimized"

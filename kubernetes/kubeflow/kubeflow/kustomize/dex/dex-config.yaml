@@ -1,0 +1,8 @@
+apiVersion: v1
+data:
+  static_email: hellodk
+  static_password_hash: JDJhJDEwJHJ1d1JyMmlQOFlMNlNaeTZFMTNPbE9GU2t6aUJYcjVqMmFLeTBOVGRYR1FwT08wdjdpU3dt
+kind: ConfigMap
+metadata:
+  creationTimestamp: null
+  name: dex-config

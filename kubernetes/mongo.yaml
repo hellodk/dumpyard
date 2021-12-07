@@ -28,7 +28,7 @@ spec:
         - /config/init.sh
         volumeMounts:
         - name: config
-          mountPath: /data/db
+          mountPath: /config
       volumes:
       - name: config
         configMap:
