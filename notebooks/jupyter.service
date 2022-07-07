@@ -1,0 +1,15 @@
+[Unit]
+Description=Jupyter-Notebook Daemon
+
+[Service]
+Type=simple
+ExecStart=/bin/bash -c "/home/dk/.local/bin/jupyter-notebook --no-browser --notebook-dir=/home/dk/Documents/git/dumpyard/notebooks --ip=0.0.0.0 --allow-root --port=8888 --NotebookApp.token='' --NotebookApp.password='' --NotebookApp.allow_origin='*' --NotebookApp.base_url=/"
+WorkingDirectory=/home/dk
+User=dk
+Group=dk
+PIDFile=/run/jupyter-notebook.pid
+Restart=on-failure
+RestartSec=60s
+
+[Install]
+WantedBy=multi-user.target
