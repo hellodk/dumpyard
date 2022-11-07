@@ -10,5 +10,9 @@ alias ltrh="ls -ltrh"
 alias vs="vagrant global-status --prune"
 alias enms="sudo modprobe -r psmouse && sudo modprobe psmouse"
 alias enwifi="cd /home/dk/Documents/git/rtl8821ce && sudo make all && sudo make install && sudo modprobe -a 8821ce"
+alias vote="/usr/bin/node /home/dk/Documents/git/GuruShots-auto-Voter/GuruShitsAutoLike.js"
+alias rak="sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys"
 
+export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/usr/local/go/bin:/home/dk/Documents/git/training-kubernetes/istio/istio-1.7.2/bin:/home/dk/go/bin:/snap/bin/
+export GOPATH=/home/dk/Documents/golang_projects
 export PATH=$PATH:/usr/local/go/bin
