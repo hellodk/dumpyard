@@ -34,3 +34,6 @@ sudo apt-get install iotop htop meld tree vagrant -y
 
 # vagrant plugin install 
 vagrant plugin install vagrant-libvirt vagrant-lxd vagrant-vbguest vagrant-hostsupdater
+
+# Allows tumbnail preview
+sudo apt install ffmpegthumbnailer libavcodec-extra ubuntu-restricted-extras -y
