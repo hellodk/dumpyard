@@ -32,6 +32,8 @@ echo ' '
 echo 'Installing system tools'
 sudo apt-get install iotop htop meld tree vagrant -y
 
+sudo apt install vagrant-libvirt build-dep vagrant ruby-libvirt qemu libvirt-daemon-system libvirt-clients ebtables dnsmasq-base libxslt-dev libxml2-dev libvirt-dev zlib1g-dev ruby-dev libguestfs-tools -y
+
 # vagrant plugin install 
 vagrant plugin install vagrant-libvirt vagrant-lxd vagrant-vbguest vagrant-hostsupdater
 
