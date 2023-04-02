@@ -16,3 +16,7 @@ spec:
             - -c
             - date; echo Hello from the Kubernetes cluster
           restartPolicy: OnFailure
+
+#kubectl get cronjob hello
+#kubectl get jobs --watch
+#kubectl get cronjob hello
