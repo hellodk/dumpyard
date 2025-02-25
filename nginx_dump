@@ -1,0 +1,266 @@
+To take a dump of NGINX-related data, you typically want one or more of the following:
+
+NGINX Configuration Dump: This includes all active configuration files.
+NGINX Logs: Collecting access and error logs for debugging purposes.
+NGINX Process and State Dump: Useful for debugging active processes or inspecting current states.
+Here’s how you can gather these dumps:
+
+1. Dump NGINX Configuration
+Run the following command to output the complete, effective configuration NGINX is using:
+
+nginx -T > nginx_config_dump.txt
+
+This dumps all configurations (including included files) into nginx_config_dump.txt
+
+2. Collect Logs
+Logs are typically found in /var/log/nginx/. You can copy them to a specific location:
+
+sudo cp /var/log/nginx/access.log /var/log/nginx/error.log ./nginx_logs/
+
+3. Dump Active NGINX Processes
+To see what NGINX is doing at runtime, use:
+
+Process list:
+ps aux | grep nginx > nginx_process_dump.txt
+
+Active connections (requires HTTP Stub Status Module enabled):
+curl http://localhost/nginx_status
+
+If the stub status module is enabled, it will show information like active connections, requests handled, etc.
+
+4. Generate a Core Dump for Debugging
+For in-depth debugging of the NGINX process:
+
+Allow core dumps:
+
+Edit /etc/systemd/system/nginx.service.d/override.conf (create if necessary):
+
+[Service]
+LimitCORE=infinity
+
+Reload systemd and restart NGINX:
+sudo systemctl daemon-reload
+sudo systemctl restart nginx
+
+Set core dump pattern:
+echo "/tmp/core.%e.%p" | sudo tee /proc/sys/kernel/core_pattern
+
+Trigger a core dump: Find the NGINX master process:
+ps aux | grep nginx
+
+Send the SIGQUIT signal to it:
+sudo kill -QUIT <nginx_master_pid>
+
+This creates a core dump file in /tmp/ that you can analyze with gdb:
+
+gdb /usr/sbin/nginx /tmp/core.<nginx_pid>
+
+5. Save NGINX Metrics
+Use tools like ngxtop to capture real-time metrics:
+
+ngxtop > nginx_metrics.txt
+
+6. Bundle All Data
+Once you've collected the configurations, logs, and process data, you can compress them for easy transfer:
+
+tar -czvf nginx_dump.tar.gz nginx_config_dump.txt nginx_logs/ nginx_process_dump.txt
+
+Let me know if you need further guidance!
+
+To fix 499 client upstream error
+
+The NGINX 499 error occurs when the client closes the connection before the server has finished processing the request. This is not technically a server-side issue, but there are ways to mitigate it and improve reliability. Here's how you can address and potentially fix the issue:
+
+1. Diagnose the Cause
+Slow backend responses: The upstream server (e.g., application server) might take too long to respond.
+Client timeout settings: The client may close the connection before receiving a response.
+High server load: Overloaded servers can delay responses, causing clients to disconnect.
+Network issues: Network disruptions between the client and server can lead to dropped connections.
+2. Mitigation Steps
+Increase Timeout Values
+Adjust the timeout values in the NGINX configuration to give the client and upstream server more time:
+
+Client-side timeout:
+
+nginx
+Copy
+Edit
+client_body_timeout 60s;
+client_header_timeout 60s;
+send_timeout 60s;
+Upstream timeout:
+
+nginx
+Copy
+Edit
+proxy_connect_timeout 60s;
+proxy_read_timeout 60s;
+proxy_send_timeout 60s;
+Enable Keep-Alive Connections
+Keep-alive connections can help reduce connection churn:
+
+nginx
+Copy
+Edit
+proxy_http_version 1.1;
+proxy_set_header Connection "";
+Optimize Backend Server
+If the upstream server is slow, consider optimizing it:
+
+Reduce response time by profiling and optimizing application logic.
+Scale the backend server horizontally using load balancers.
+Cache responses to reduce backend processing using tools like Redis or Memcached.
+Rate-Limiting and Throttling
+Prevent slow clients or high traffic spikes from overwhelming the server:
+
+nginx
+Copy
+Edit
+limit_req_zone $binary_remote_addr zone=one:10m rate=10r/s;
+
+server {
+    location / {
+        limit_req zone=one burst=20;
+    }
+}
+Increase Buffer Sizes
+Clients may disconnect if NGINX runs out of buffer space:
+
+nginx
+Copy
+Edit
+proxy_buffers 8 16k;
+proxy_buffer_size 16k;
+proxy_busy_buffers_size 32k;
+3. Monitor and Analyze
+Access Logs: Check the frequency and context of 499 errors in /var/log/nginx/access.log:
+
+tail -f /var/log/nginx/access.log | grep " 499 "
+
+Error Logs: Look for related errors in /var/log/nginx/error.log:
+
+tail -f /var/log/nginx/error.log
+
+NGINX Metrics: Use tools like ngxtop or the HTTP Stub Status module to track response times and client connections:
+
+curl http://localhost/nginx_status
+
+4. Ensure Clients Aren't Disconnecting Prematurely
+Check the client's network stability.
+Ensure clients aren't using overly aggressive timeouts or aborting requests prematurely.
+Example NGINX Configuration
+Here’s an example of a well-tuned configuration to mitigate 499 errors:
+
+nginx
+Copy
+Edit
+http {
+    client_body_timeout 60s;
+    client_header_timeout 60s;
+    send_timeout 60s;
+
+    proxy_connect_timeout 60s;
+    proxy_read_timeout 60s;
+    proxy_send_timeout 60s;
+
+    proxy_buffers 8 16k;
+    proxy_buffer_size 16k;
+    proxy_busy_buffers_size 32k;
+
+    limit_req_zone $binary_remote_addr zone=one:10m rate=10r/s;
+
+    server {
+        listen 80;
+
+        location / {
+            proxy_pass http://upstream_server;
+            proxy_http_version 1.1;
+            proxy_set_header Connection "";
+            limit_req zone=one burst=20;
+        }
+    }
+}
+If the problem persists, you may need deeper profiling of your backend application or network setup. Let me know if you need more help!
+
+
+
+Tweaking sysctl parameters can help improve the performance and reliability of your NGINX server and mitigate issues like 499 client upstream errors caused by network or connection handling inefficiencies. Here are some commonly adjusted sysctl parameters and their purposes:
+
+1. Increase the Maximum Number of Open File Descriptors
+NGINX can handle many connections, but it requires sufficient file descriptors.
+
+# Increase the limit of open file descriptors
+
+fs.file-max = 2097152
+
+# Apply it for user limits in /etc/security/limits.conf
+nginx_user soft nofile 1048576
+nginx_user hard nofile 2097152
+2. Tune TCP Settings
+Adjust TCP connection handling to reduce dropped connections and improve performance:
+
+# Reuse TIME-WAIT sockets for new connections when safe
+
+net.ipv4.tcp_tw_reuse = 1
+
+# Enable fast recycling of TIME-WAIT sockets
+net.ipv4.tcp_tw_recycle = 0
+
+# Keep TCP connections alive (recommended for long-lived connections)
+net.ipv4.tcp_keepalive_time = 600
+net.ipv4.tcp_keepalive_intvl = 75
+net.ipv4.tcp_keepalive_probes = 9
+
+# Increase the maximum number of SYN backlog queue (pending connections)
+net.ipv4.tcp_max_syn_backlog = 8192
+
+# Allow more time for incomplete TCP connections to be recycled
+net.ipv4.tcp_fin_timeout = 15
+
+# Increase the ephemeral port range for client connections
+net.ipv4.ip_local_port_range = 1024 65535
+3. Handle High Traffic Load
+Increase the network queue sizes to accommodate more connections under high traffic conditions:
+
+# Increase the size of the listen queue
+
+net.core.somaxconn = 65535
+
+# Adjust the maximum backlog for unfinished TCP connections
+net.core.netdev_max_backlog = 65536
+4. Avoid Fragmentation
+Optimize socket buffers to reduce network packet fragmentation:
+
+# Increase the default and maximum socket buffer sizes
+
+net.core.rmem_default = 262144
+net.core.rmem_max = 16777216
+net.core.wmem_default = 262144
+net.core.wmem_max = 16777216
+
+# Use larger buffers for TCP windows
+net.ipv4.tcp_rmem = 4096 87380 16777216
+net.ipv4.tcp_wmem = 4096 65536 16777216
+5. Improve Connection Tracking
+If you have many connections, ensure the system can track them properly:
+
+# Increase the maximum number of tracked connections
+
+net.netfilter.nf_conntrack_max = 262144
+
+# Ensure conntrack table uses sufficient buckets
+net.netfilter.nf_conntrack_buckets = 65536
+6. Apply Changes
+Save the changes to /etc/sysctl.conf and apply them using:
+
+sudo sysctl -p
+
+7. Verify Changes
+Check that the parameters are set correctly using:
+
+sysctl -a | grep <parameter_name>
+
+Additional Notes
+Be careful with tcp_tw_recycle (set to 0 by default in modern kernels) as it can cause issues with NAT clients.
+If you’re running a high-performance, multi-core server, ensure you configure the NGINX worker processes (worker_connections and worker_rlimit_nofile) to match the system limits.
+With these changes, you should see improved network performance and fewer 499 errors caused by server/network limitations.
