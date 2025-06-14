@@ -1219,9 +1219,9 @@ grafana:
 
   grafana.ini:
     server:
-      root_url: "champ.com/grafana"
+      domain: "champ.com"
+      root_url: "%(protocol)s://%(domain)s"
       serve_from_sub_path: true
-
 
   ## ForceDeployDatasources Create datasource configmap even if grafana deployment has been disabled
   ##

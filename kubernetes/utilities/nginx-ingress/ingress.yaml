@@ -1,75 +1,3 @@
-# apiVersion: networking.k8s.io/v1
-# kind: Ingress
-# metadata:
-#   name: yakd-ingress
-#   namespace: default
-# spec:
-#   ingressClassName: nginx
-#   rules:
-#     - host: champ.com
-#       http:
-#         paths:
-#           - path: /
-#             pathType: Prefix
-#             backend:
-#               service:
-#                 name: web
-#                 port:
-#                   number: 8080
-#           - path: /yakd
-#             pathType: Prefix
-#             backend:
-#               service:
-#                 name: yakd-dashboard
-#                 port:
-#                   number: 80
----
-# apiVersion: networking.k8s.io/v1
-# kind: Ingress
-# metadata:
-#   name: monitoring-ingress
-#   namespace: monitoring
-#   annotations:
-#     nginx.ingress.kubernetes.io/rewrite-target: /$2
-# spec:
-#   # ingressClassName: nginx
-#   rules:
-#     - host: champ.com
-#       http:
-#         paths:
-#           - path: /grafana(/|$)(.*))
-#             pathType: ImplementationSpecific
-#             backend:
-#               service:
-#                 name: monitoring-grafana
-#                 port:
-#                   number: 80# 
-
-#           - path: /prom(/|$)(.*)
-#             pathType: ImplementationSpecific
-#             backend:
-#               service:
-#                 name: monitoring-prometheus
-#                 port:
-#                   number: 9090
-
-#          - path: /prometheus(/|$)(.*)
-#            pathType: ImplementationSpecific
-#            backend:
-#              service:
-#                name: monitoring-prometheus
-#                port:
-#                  number: 9090#
-
-#          - path: /alertmanager(/|$)(.*)
-#            pathType: ImplementationSpecific
-#            backend:
-#              service:
-#                name: monitoring-alertmanager
-#                port:
-#                  number: 9093
-
----
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
@@ -77,27 +5,21 @@ metadata:
   namespace: monitoring
   annotations:
     nginx.ingress.kubernetes.io/rewrite-target: /$2
+    nginx.ingress.kubernetes.io/use-regex: "true"
+#    nginx.ingress.kubernetes.io/preserve-host: "true"
 spec:
   ingressClassName: nginx
   rules:
     - host: champ.com
       http:
         paths:
-          - path: /grafana(/|$)(.*)
-            pathType: ImplementationSpecific
-            backend:
-              service:
-                name: monitoring-grafana
-                port:
-                  number: 80
-
-          - path: /prom(/|$)(.*)
-            pathType: ImplementationSpecific
-            backend:
-              service:
-                name: monitoring-prometheus
-                port:
-                  number: 9090
+#          - path: /grafana(/|$)(.*)
+#            pathType: ImplementationSpecific
+#            backend:
+#              service:
+#                name: monitoring-grafana
+#                port:
+#                  number: 80
 
           - path: /prometheus(/|$)(.*)
             pathType: ImplementationSpecific
