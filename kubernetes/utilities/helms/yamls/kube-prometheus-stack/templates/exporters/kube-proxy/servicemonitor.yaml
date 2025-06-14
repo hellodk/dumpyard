@@ -1,0 +1,30 @@
+---
+# Source: kube-prometheus-stack/templates/exporters/kube-proxy/servicemonitor.yaml
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: monitoring-kube-proxy
+  namespace: monitoring
+  labels:
+    app: monitoring-kube-proxy
+    
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/instance: monitoring
+    app.kubernetes.io/version: "74.0.0"
+    app.kubernetes.io/part-of: monitoring
+    chart: kube-prometheus-stack-74.0.0
+    release: "monitoring"
+    heritage: "Helm"
+spec:
+  jobLabel: jobLabel
+  
+  selector:
+    matchLabels:
+      app: monitoring-kube-proxy
+      release: "monitoring"
+  namespaceSelector:
+    matchNames:
+      - "kube-system"
+  endpoints:
+  - port: http-metrics
+    bearerTokenFile: /var/run/secrets/kubernetes.io/serviceaccount/token
