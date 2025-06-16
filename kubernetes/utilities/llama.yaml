@@ -2,6 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: ollama
+  namespace: utilities
   labels:
     app: ollama
 spec:
@@ -18,7 +19,15 @@ spec:
         - name: ollama
           image: ollama/ollama:latest
           command: ["/bin/sh", "-c"]
-          args: ["ollama serve"]
+          args:
+            - |
+              if ! ollama list | grep -q 'llama3.1:8b'; then
+                ollama pull llama3.1:8b;
+              fi
+              ollama serve
+          env:
+            - name: TZ
+              value: Asia/Kolkata
           ports:
             - containerPort: 11434
           volumeMounts:
@@ -32,7 +41,40 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
+  labels:
+    app: ollama
+    app.kubernetes.io/component: controller
   name: ollama
+  namespace: utilities
 spec:
-  type: NodePort  #
+  #externalTrafficPolicy: Local
+  ipFamilies:
+  - IPv4
+  ipFamilyPolicy: SingleStack
+  ports:
+  - name: http
+    port: 80
+    protocol: TCP
+    targetPort: 11434
+  selector:
+    app: ollama
+  clusterIP: 10.110.97.128
+  type: NodePort #LoadBalancer
 
+
+
+
+
+# ---
+# apiVersion: v1
+# kind: Service
+# metadata:
+#   labels:
+#     app.kubernetes.io/component: controller
+#     app.kubernetes.io/instance: ingress-nginx
+#     app.kubernetes.io/name: ingress-nginx
+#     app.kubernetes.io/part-of: ingress-nginx
+#     app.kubernetes.io/version: 1.12.3
+#   name: ingress-nginx-controller
+#   namespace: ingress-nginx
+# spec:

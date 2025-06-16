@@ -18,3 +18,67 @@ spec:
                 name: monitoring-grafana
                 port:
                   number: 80
+
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: kubeflow-ingress
+  namespace: kubeflow
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /$2
+    nginx.ingress.kubernetes.io/use-regex: "true"
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+spec:
+  ingressClassName: nginx
+  rules:
+  - host: champ.com
+    http:
+      paths:
+      - path: /kubeflow(/|$)(.*)
+        pathType: ImplementationSpecific
+        backend:
+          service:
+            name: centraldashboard
+            port:
+              number: 80
+
+# ---
+# apiVersion: networking.istio.io/v1beta1
+# kind: Gateway
+# metadata:
+#   name: kubeflow-gateway
+#   namespace: istio-system
+# spec:
+#   selector:
+#     istio: ingressgateway # use istio ingress gateway
+#   servers:
+#   - port:
+#       number: 443
+#       name: https
+#       protocol: HTTPS
+#     tls:
+#       mode: SIMPLE
+#       credentialName: kubeflow-tls-secret # TLS secret in istio-system namespace
+#     hosts:
+#     - "abc.com"
+# ---
+# apiVersion: networking.istio.io/v1beta1
+# kind: VirtualService
+# metadata:
+#   name: kubeflow
+#   namespace: kubeflow
+# spec:
+#   hosts:
+#   - "ml1.com"
+#   gateways:  
+#   - istio-system/kubeflow-gateway
+#   http:
+#   - match:
+#     - uri:
+#         prefix: /
+#     route:
+#     - destination:
+#         host: istio-ingressgateway.istio-system.svc.cluster.local
+#         port:
+#           number: 80
