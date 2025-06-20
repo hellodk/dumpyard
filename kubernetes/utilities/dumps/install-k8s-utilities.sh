@@ -29,3 +29,6 @@ kubectl apply -f .
 # Install Metrics Server
 
 kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml
+
+helm upgrade --install monitoring . -f values-minikube-1.34.yaml 
+helm upgrade --install k8sgpt k8sgpt-operator -n utilities

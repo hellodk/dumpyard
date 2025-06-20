@@ -1,0 +1,20 @@
+#ExecStart=/usr/local/bin/minikube tunnel
+
+[Unit]
+Description=Minikube Tunnel
+After=network.target
+ConditionExecStart=/usr/local/bin/minikube status --format '{{.Host}}' | grep "Running"
+
+[Service]
+Type=simple
+User=dk
+ExecStartPre=/usr/bin/env bash -c '! pgrep -f "minikube tunnel" >/dev/null'
+ExecStart=/usr/bin/flock -n /tmp/minikube-tunnel.lock /usr/local/bin/minikube tunnel
+#Restart=always
+#RestartSec=50
+StandardOutput=append:/tmp/minikube-tunnel.log
+StandardError=append:/tmp/minikube-tunnel.err
+
+[Install]
+WantedBy=multi-user.target
+

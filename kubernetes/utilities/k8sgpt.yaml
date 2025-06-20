@@ -1,0 +1,65 @@
+apiVersion: core.k8sgpt.ai/v1alpha1
+kind: K8sGPT
+metadata:
+  name: k8sgpt-ollama
+  namespace: utilities
+spec:
+  repository: ghcr.io/k8sgpt-ai/k8sgpt
+  version: v0.4.1
+  ai:
+    backend: customrest
+    model: llama3
+    baseUrl: "http://ollama.utilities.svc.cluster.local:80"
+  noCache: true
+#  include:
+#    - Pod
+#    - Deployment
+#    - Node
+#---#
+
+#apiVersion: core.k8sgpt.ai/v1alpha1
+#kind: K8sGPT
+#metadata:
+#  name: k8sgpt-sample
+#  namespace: utilities
+#spec:
+#  ai:
+#    enabled: true
+#    model: "llama3"
+#    backend: customrest
+#    customrest:
+#      url: "http://ollama.utilities.svc.cluster.local:80"
+#      payload: |
+#        {
+#          "model": "{{.Model}}",
+#          "prompt": "{{.Prompt}}",
+#          "stream": false
+#        }
+#      #    secret:
+#      # name: k8sgpt-sample-secret
+#      #key: openai-api-key
+#    # backOff:
+#    #  enabled: false
+#    #  maxRetries: 5
+#    # anonymized: false
+#    # language: english
+#    # proxyEndpoint: https://10.255.30.150 # use proxyEndpoint to setup backend through an HTTP/HTTPS proxy
+#  noCache: false
+#  repository: ghcr.io/k8sgpt-ai/k8sgpt
+#  version: v0.4.1
+#  #integrations:
+#  # trivy:
+#  #  enabled: true
+#  #  namespace: trivy-system
+#  # filters:
+#  #   - Ingress
+#  # sink:
+#  #   type: slack
+#  #   webhook: <webhook-url> # use the sink secret if you want to keep your webhook url private
+#  #   secret:
+#  #     name: slack-webhook
+#  #     key: url
+#  #extraOptions:
+#  #   backstage:
+#  #     enabled: true#
+

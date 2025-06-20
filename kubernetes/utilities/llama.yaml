@@ -60,9 +60,29 @@ spec:
     app: ollama
   clusterIP: 10.110.97.128
   type: NodePort #LoadBalancer
-
-
-
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: ollama
+    app.kubernetes.io/component: controller
+  name: ollama-lb
+  namespace: utilities
+spec:
+  #externalTrafficPolicy: Local
+  ipFamilies:
+  - IPv4
+  ipFamilyPolicy: SingleStack
+  ports:
+  - name: http
+    port: 80
+    protocol: TCP
+    targetPort: 11434
+  selector:
+    app: ollama
+#  clusterIP: 10.110.97.128
+  type: LoadBalancer
 
 
 # ---
