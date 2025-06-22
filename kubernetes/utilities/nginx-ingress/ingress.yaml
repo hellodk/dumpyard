@@ -13,13 +13,6 @@ spec:
     - host: champ.com
       http:
         paths:
-#          - path: /grafana(/|$)(.*)
-#            pathType: ImplementationSpecific
-#            backend:
-#              service:
-#                name: monitoring-grafana
-#                port:
-#                  number: 80
 
           - path: /prometheus(/|$)(.*)
             pathType: ImplementationSpecific
