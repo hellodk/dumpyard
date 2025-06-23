@@ -20,4 +20,4 @@ maintainers:
   url: https://github.com/k8sgpt-ai/community
 name: k8sgpt-operator
 type: application
-version: 0.2.21
+version: 0.2.22

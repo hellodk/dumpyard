@@ -1,7 +1,7 @@
 apiVersion: core.k8sgpt.ai/v1alpha1
 kind: K8sGPT
 metadata:
-  name: k8sgpt-ollama
+  name: k8sgpt
   namespace: utilities
 spec:
   repository: ghcr.io/k8sgpt-ai/k8sgpt
@@ -10,13 +10,13 @@ spec:
     trivy:
       enabled: true
       namespace: trivy-system
-#    prometheus:
+#    metrics:
 #      enabled: true
 #      namespace: monitoring
   ai:
     backend: customrest
     model: llama3
-    baseUrl: "http://ollama.utilities.svc.cluster.local:80"
+    baseUrl: "http://192.168.1.10:11434"
   noCache: true
 #  include:
 #    - Pod
