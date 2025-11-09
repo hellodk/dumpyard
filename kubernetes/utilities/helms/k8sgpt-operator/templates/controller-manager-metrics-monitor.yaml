@@ -29,4 +29,5 @@ spec:
   selector:
     matchLabels:
       control-plane: controller-manager
+      svc: k8sgpt
 {{ end -}}

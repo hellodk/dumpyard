@@ -1,0 +1,116 @@
+kind,name,error,details,parentObject,namespace,reason,explanation
+ConfigMap,knative-serving/config-autoscaler,"[{'Text': 'ConfigMap config-autoscaler is not used by any pods in the namespace', 'KubernetesDoc': '', 'Sensitive': []}]","Error: ConfigMap 'config-autoscaler' is not used by any pods in the namespace.
+
+Solution:
+
+1. Check if the ConfigMap is created correctly.
+2. Verify that the pod deployment YAML file references the ConfigMap.
+3. Ensure the pod is running and has the correct environment variables set to use the ConfigMap.
+4. If using HPA (Horizontal Pod Autoscaler), check if it's referencing the correct ConfigMap.",,N/A,N/A,N/A
+ConfigMap,knative-serving/config-certmanager,"[{'Text': 'ConfigMap config-certmanager is not used by any pods in the namespace', 'KubernetesDoc': '', 'Sensitive': []}]","Error: ConfigMap ""config-certmanager"" is not used by any pods in the namespace.
+
+Solution:
+
+1. Check if the ConfigMap is referenced in a Deployment or StatefulSet.
+2. Verify that the ConfigMap is correctly created and has the expected data.
+3. If using a Service, check its spec.template.spec.containers.env section for references to the ConfigMap.
+4. If none of the above steps resolve the issue, delete the ConfigMap and recreate it.",,N/A,N/A,N/A
+ConfigMap,knative-serving/config-defaults,"[{'Text': 'ConfigMap config-defaults is not used by any pods in the namespace', 'KubernetesDoc': '', 'Sensitive': []}]","Error: ConfigMap ""config-defaults"" is not used by any pods in the namespace.
+
+Solution:
+
+1. Check if the ConfigMap is correctly created and exists in the cluster.
+2. Verify that the pod configuration references the correct ConfigMap name.
+3. If using a Deployment, check if the `spec.template.spec.containers.env` section is referencing the ConfigMap.
+4. Run `kubectl get pods -l <selector> -o yaml` to inspect pod configurations.
+5. Update or recreate the pod to reference the ConfigMap correctly.",,N/A,N/A,N/A
+ConfigMap,knative-serving/config-deployment,"[{'Text': 'ConfigMap config-deployment is not used by any pods in the namespace', 'KubernetesDoc': '', 'Sensitive': []}]","Error: ConfigMap ""config-deployment"" is not used by any pods in the namespace.
+
+Solution:
+
+1. Check if the ConfigMap is correctly created and exists in the namespace.
+2. Verify that the pod(s) using this ConfigMap are properly configured to reference it.
+3. If using a Deployment, ensure the ConfigMap is referenced in the deployment's template.
+4. Run `kubectl get pods` and `kubectl describe configmap config-deployment` for more details.",,N/A,N/A,N/A
+ConfigMap,knative-serving/config-domain,"[{'Text': 'ConfigMap config-domain is not used by any pods in the namespace', 'KubernetesDoc': '', 'Sensitive': []}]","Error: ConfigMap ""config-domain"" is not used by any pods in namespace.
+
+Solution:
+
+1. Check if config-domain ConfigMap exists in current namespace.
+2. Verify if pods are referencing correct ConfigMap name and namespace.
+3. Update pod configurations to reference the correct ConfigMap.",,N/A,N/A,N/A
+ConfigMap,knative-serving/config-features,"[{'Text': 'ConfigMap config-features is not used by any pods in the namespace', 'KubernetesDoc': '', 'Sensitive': []}]","Error: ConfigMap ""config-features"" is not used by any pods in the namespace.
+
+Solution:
+
+1. Check if the ConfigMap is referenced in a Deployment or StatefulSet YAML file.
+2. Verify that the pod's configuration matches the ConfigMap name and namespace.
+3. If using a Deployment, check if the `spec.template.spec.containers.env` section references the ConfigMap.
+4. Update the pod's configuration to reference the ConfigMap correctly.",,N/A,N/A,N/A
+ConfigMap,knative-serving/config-gc,"[{'Text': 'ConfigMap config-gc is not used by any pods in the namespace', 'KubernetesDoc': '', 'Sensitive': []}]","Error: ConfigMap ""config-gc"" is not used by any pods in the namespace.
+
+Solution:
+
+1. Check if config-gc is still required and delete it if unnecessary.
+2. Verify that no pod references config-gc in its configuration files.
+3. If necessary, recreate the pod or update its configuration to reference a different ConfigMap.",,N/A,N/A,N/A
+ConfigMap,knative-serving/config-istio,"[{'Text': 'ConfigMap config-istio is not used by any pods in the namespace', 'KubernetesDoc': '', 'Sensitive': []}]","Error: ConfigMap ""config-istio"" is not used by any pods in the namespace.
+
+Solution:
+
+1. Check if the ConfigMap is referenced in a Deployment or StatefulSet.
+2. Verify that the ConfigMap name and namespace are correct.
+3. If using Istio, check if the config-istio ConfigMap is created automatically.
+4. Create a new pod referencing the ConfigMap to test its usage.",,N/A,N/A,N/A
+ConfigMap,knative-serving/config-leader-election,"[{'Text': 'ConfigMap config-leader-election is not used by any pods in the namespace', 'KubernetesDoc': '', 'Sensitive': []}]","Error: ConfigMap ""config-leader-election"" is not used by any pods in the namespace.
+
+Solution: 
+1. Check if the ConfigMap is correctly created and has the correct name.
+2. Verify that the pod configuration references the ConfigMap with the correct name.
+3. If using a Deployment, check the `spec.template.spec.containers.volumeMounts` section for the ConfigMap reference.",,N/A,N/A,N/A
+ConfigMap,knative-serving/config-logging,"[{'Text': 'ConfigMap config-logging is not used by any pods in the namespace', 'KubernetesDoc': '', 'Sensitive': []}]","Error: ConfigMap ""config-logging"" is not used by any pods in the namespace.
+
+Solution:
+
+1. Check if the ConfigMap is referenced in a Deployment or Pod YAML file.
+2. Verify that the ConfigMap name and namespace match the one being referred to.
+3. If using a Deployment, check if the ConfigMap is mounted as a volume.
+4. If none of the above steps resolve the issue, try deleting and recreating the ConfigMap.",,N/A,N/A,N/A
+ConfigMap,knative-serving/config-network,"[{'Text': 'ConfigMap config-network is not used by any pods in the namespace', 'KubernetesDoc': '', 'Sensitive': []}]","Error: ConfigMap ""config-network"" is not used by any pods in the namespace.
+
+Solution:
+
+1. Check if config-network ConfigMap is referenced in a Deployment or Pod YAML file.
+2. Verify that the ConfigMap name and namespace match in the YAML files.
+3. If no reference found, delete the unused ConfigMap to avoid clutter.",,N/A,N/A,N/A
+ConfigMap,knative-serving/config-observability,"[{'Text': 'ConfigMap config-observability is not used by any pods in the namespace', 'KubernetesDoc': '', 'Sensitive': []}]","Error: ConfigMap ""config-observability"" is not used by any pods in the namespace.
+
+Solution:
+
+1. Check if the ConfigMap is correctly created and deployed.
+2. Verify that the pods are using the correct ConfigMap name.
+3. If using a Deployment, check the `spec.template.spec.containers.volumeMounts` section for the ConfigMap reference.
+4. If still issues, try deleting and recreating the ConfigMap or the pods.",,N/A,N/A,N/A
+ConfigMap,knative-serving/config-tracing,"[{'Text': 'ConfigMap config-tracing is not used by any pods in the namespace', 'KubernetesDoc': '', 'Sensitive': []}]","Error: ConfigMap ""config-tracing"" is not used by any pods in the namespace.
+
+Solution:
+
+1. Check if config-tracing ConfigMap exists and is correctly formatted.
+2. Verify that pods in the namespace are using the correct ConfigMap name or key.
+3. If using a deployment, check the deployment YAML for the correct ConfigMap reference.
+4. If none of the above steps resolve the issue, try deleting and recreating the ConfigMap.",,N/A,N/A,N/A
+ConfigMap,knative-serving/kube-root-ca.crt,"[{'Text': 'ConfigMap kube-root-ca.crt is not used by any pods in the namespace', 'KubernetesDoc': '', 'Sensitive': []}]","Error: ConfigMap kube-root-ca.crt is not used by any pods in the namespace.
+Solution:
+
+1. Check if the ConfigMap is correctly created and has a valid name.
+2. Verify that the pod's deployment YAML file references the ConfigMap correctly.
+3. Ensure the pod's service account has access to the ConfigMap.
+4. Run `kubectl get cm kube-root-ca.crt -o yaml` to inspect the ConfigMap.",,N/A,N/A,N/A
+Service,knative-serving/webhook,"[{'Text': 'Service knative-serving/webhook has event failed to get cpu utilization: unable to get metrics for resource cpu: unable to fetch metrics from resource metrics API: the server is currently unable to handle the request (get pods.metrics.k8s.io)', 'KubernetesDoc': '', 'Sensitive': None}, {'Text': 'Service knative-serving/webhook has event invalid metrics (1 invalid out of 1), first error is: failed to get cpu resource metric value: failed to get cpu utilization: unable to get metrics for resource cpu: unable to fetch metrics from resource metrics API: the server is currently unable to handle the request (get pods.metrics.k8s.io)', 'KubernetesDoc': '', 'Sensitive': None}, {'Text': 'Service knative-serving/webhook has event failed to get cpu utilization: unable to get metrics for resource cpu: no metrics returned from resource metrics API', 'KubernetesDoc': '', 'Sensitive': None}, {'Text': 'Service knative-serving/webhook has event invalid metrics (1 invalid out of 1), first error is: failed to get cpu resource metric value: failed to get cpu utilization: unable to get metrics for resource cpu: no metrics returned from resource metrics API', 'KubernetesDoc': '', 'Sensitive': None}]","Error: Unable to fetch metrics from Kubernetes Metrics API due to server overload or no metrics returned.
+
+Solution:
+
+1. Check if the `metrics-server` is running and healthy.
+2. Verify that the `MetricsServer` deployment has sufficient resources (CPU/Memory).
+3. If overloaded, consider scaling down the `MetricsServer` deployment.
+4. If no metrics are being returned, check for issues with cluster monitoring tools like Prometheus/Grafana.",,N/A,N/A,N/A

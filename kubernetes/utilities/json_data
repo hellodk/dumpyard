@@ -1,0 +1,1115 @@
+{
+  "provider": "ollama",
+  "errors": null,
+  "status": "ProblemDetected",
+  "problems": 90,
+  "results": [
+    {
+      "kind": "StatefulSet",
+      "name": "kubeflow/metacontroller",
+      "error": [
+        {
+          "Text": "StatefulSet uses the service kubeflow/ which does not exist.",
+          "KubernetesDoc": "",
+          "Sensitive": [
+            {
+              "Unmasked": "kubeflow",
+              "Masked": "WGwnWmtoVGk="
+            },
+            {
+              "Unmasked": "",
+              "Masked": ""
+            }
+          ]
+        }
+      ],
+      "details": "Error: StatefulSet uses service kubeflow/ which does not exist.\nSolution: \n1. Verify the service name and namespace in your StatefulSet configuration.\n2. Create the missing service with `kubectl create` command or update the service reference in your StatefulSet YAML file.",
+      "parentObject": ""
+    },
+    {
+      "kind": "ConfigMap",
+      "name": "auth/kube-root-ca.crt",
+      "error": [
+        {
+          "Text": "ConfigMap kube-root-ca.crt is not used by any pods in the namespace",
+          "KubernetesDoc": "",
+          "Sensitive": []
+        }
+      ],
+      "details": "Error: ConfigMap kube-root-ca.crt is not used by any pods in the namespace.\nSolution:\n\n1. Check if the ConfigMap is correctly created and has a valid name.\n2. Verify that the pod's deployment YAML file references the ConfigMap correctly.\n3. Ensure the pod's service account has access to the ConfigMap.\n4. Run `kubectl get cm kube-root-ca.crt -o yaml` to inspect the ConfigMap.",
+      "parentObject": ""
+    },
+    {
+      "kind": "ConfigMap",
+      "name": "cert-manager/kube-root-ca.crt",
+      "error": [
+        {
+          "Text": "ConfigMap kube-root-ca.crt is not used by any pods in the namespace",
+          "KubernetesDoc": "",
+          "Sensitive": []
+        }
+      ],
+      "details": "Error: ConfigMap kube-root-ca.crt is not used by any pods in the namespace.\nSolution:\n\n1. Check if the ConfigMap is correctly created and has a valid name.\n2. Verify that the pod's deployment YAML file references the ConfigMap correctly.\n3. Ensure the pod's service account has access to the ConfigMap.\n4. Run `kubectl get cm kube-root-ca.crt -o yaml` to inspect the ConfigMap.",
+      "parentObject": ""
+    },
+    {
+      "kind": "ConfigMap",
+      "name": "default/default-install-config-9h2h2b6hbk",
+      "error": [
+        {
+          "Text": "ConfigMap default-install-config-9h2h2b6hbk is not used by any pods in the namespace",
+          "KubernetesDoc": "",
+          "Sensitive": []
+        }
+      ],
+      "details": "Error: ConfigMap \"default-install-config-9h2h2b6hbk\" is not used by any pods.\n\nSolution:\n\n1. Check if ConfigMap is created in correct namespace.\n2. Verify if pod configuration uses the ConfigMap.\n3. Delete unused ConfigMap to free up resources.",
+      "parentObject": ""
+    },
+    {
+      "kind": "ConfigMap",
+      "name": "default/kube-root-ca.crt",
+      "error": [
+        {
+          "Text": "ConfigMap kube-root-ca.crt is not used by any pods in the namespace",
+          "KubernetesDoc": "",
+          "Sensitive": []
+        }
+      ],
+      "details": "Error: ConfigMap kube-root-ca.crt is not used by any pods in the namespace.\nSolution:\n\n1. Check if the ConfigMap is correctly created and has a valid name.\n2. Verify that the pod's deployment YAML file references the ConfigMap correctly.\n3. Ensure the pod's service account has access to the ConfigMap.\n4. Run `kubectl get cm kube-root-ca.crt -o yaml` to inspect the ConfigMap.",
+      "parentObject": ""
+    },
+    {
+      "kind": "ConfigMap",
+      "name": "ingress-nginx/ingress-nginx-controller",
+      "error": [
+        {
+          "Text": "ConfigMap ingress-nginx-controller is not used by any pods in the namespace",
+          "KubernetesDoc": "",
+          "Sensitive": []
+        },
+        {
+          "Text": "ConfigMap ingress-nginx-controller is empty",
+          "KubernetesDoc": "",
+          "Sensitive": []
+        }
+      ],
+      "details": "Error: ConfigMap \"ingress-nginx-controller\" is not used by any pods and is empty.\n\nSolution:\n\n1. Check if the Ingress resource exists and is correctly configured.\n2. Verify that the namespace of the ConfigMap matches the namespace of the Ingress resource.\n3. If using Helm, run `helm upgrade` to ensure the ConfigMap is updated.\n4. Manually create a pod that uses the ConfigMap to resolve the issue.",
+      "parentObject": ""
+    },
+    {
+      "kind": "ConfigMap",
+      "name": "ingress-nginx/kube-root-ca.crt",
+      "error": [
+        {
+          "Text": "ConfigMap kube-root-ca.crt is not used by any pods in the namespace",
+          "KubernetesDoc": "",
+          "Sensitive": []
+        }
+      ],
+      "details": "Error: ConfigMap kube-root-ca.crt is not used by any pods in the namespace.\nSolution:\n\n1. Check if the ConfigMap is correctly created and has a valid name.\n2. Verify that the pod's deployment YAML file references the ConfigMap correctly.\n3. Ensure the pod's service account has access to the ConfigMap.\n4. Run `kubectl get cm kube-root-ca.crt -o yaml` to inspect the ConfigMap.",
+      "parentObject": ""
+    },
+    {
+      "kind": "ConfigMap",
+      "name": "istio-system/istio-gateway-status-leader",
+      "error": [
+        {
+          "Text": "ConfigMap istio-gateway-status-leader is not used by any pods in the namespace",
+          "KubernetesDoc": "",
+          "Sensitive": []
+        },
+        {
+          "Text": "ConfigMap istio-gateway-status-leader is empty",
+          "KubernetesDoc": "",
+          "Sensitive": []
+        }
+      ],
+      "details": "Error: ConfigMap istio-gateway-status-leader is not used by any pods and is empty.\n\nSolution:\n\n1. Check if Istio is installed correctly.\n2. Verify that there are no unused ConfigMaps in the namespace.\n3. Delete the unused ConfigMap `istio-gateway-status-leader`.\n4. Restart the Istio components for changes to take effect.",
+      "parentObject": ""
+    },
+    {
+      "kind": "ConfigMap",
+      "name": "istio-system/istio-leader",
+      "error": [
+        {
+          "Text": "ConfigMap istio-leader is not used by any pods in the namespace",
+          "KubernetesDoc": "",
+          "Sensitive": []
+        },
+        {
+          "Text": "ConfigMap istio-leader is empty",
+          "KubernetesDoc": "",
+          "Sensitive": []
+        }
+      ],
+      "details": "Error: ConfigMap \"istio-leader\" is not used by any pods and is empty.\n\nSolution:\n\n1. Check if `istio-leader` ConfigMap is required.\n2. If yes, create a pod that uses it.\n3. If no, delete the unused ConfigMap.",
+      "parentObject": ""
+    },
+    {
+      "kind": "ConfigMap",
+      "name": "istio-system/istio-namespace-controller-election",
+      "error": [
+        {
+          "Text": "ConfigMap istio-namespace-controller-election is not used by any pods in the namespace",
+          "KubernetesDoc": "",
+          "Sensitive": []
+        },
+        {
+          "Text": "ConfigMap istio-namespace-controller-election is empty",
+          "KubernetesDoc": "",
+          "Sensitive": []
+        }
+      ],
+      "details": "Error: ConfigMap istio-namespace-controller-election is not used by any pods and is empty.\n\nSolution: \n1. Check if Istio components are deployed.\n2. Verify namespace configuration.\n3. Update or delete unused ConfigMaps.",
+      "parentObject": ""
+    },
+    {
+      "kind": "ConfigMap",
+      "name": "istio-system/istio-sidecar-injector",
+      "error": [
+        {
+          "Text": "ConfigMap istio-sidecar-injector is not used by any pods in the namespace",
+          "KubernetesDoc": "",
+          "Sensitive": []
+        }
+      ],
+      "details": "Error: ConfigMap \"istio-sidecar-injector\" is not used by any pods in the namespace.\n\nSolution: \n1. Check if Istio is installed and running.\n2. Verify that the namespace has an active Istio configuration.\n3. Run `kubectl label namespace \u003cnamespace\u003e istio-injection=enabled` to enable sidecar injection.\n4. Restart or re-deploy affected pods.",
+      "parentObject": ""
+    },
+    {
+      "kind": "ConfigMap",
+      "name": "istio-system/kube-root-ca.crt",
+      "error": [
+        {
+          "Text": "ConfigMap kube-root-ca.crt is not used by any pods in the namespace",
+          "KubernetesDoc": "",
+          "Sensitive": []
+        }
+      ],
+      "details": "Error: ConfigMap kube-root-ca.crt is not used by any pods in the namespace.\nSolution:\n\n1. Check if the ConfigMap is correctly created and has a valid name.\n2. Verify that the pod's deployment YAML file references the ConfigMap correctly.\n3. Ensure the pod's service account has access to the ConfigMap.\n4. Run `kubectl get cm kube-root-ca.crt -o yaml` to inspect the ConfigMap.",
+      "parentObject": ""
+    },
+    {
+      "kind": "ConfigMap",
+      "name": "knative-serving/config-autoscaler",
+      "error": [
+        {
+          "Text": "ConfigMap config-autoscaler is not used by any pods in the namespace",
+          "KubernetesDoc": "",
+          "Sensitive": []
+        }
+      ],
+      "details": "Error: ConfigMap 'config-autoscaler' is not used by any pods in the namespace.\n\nSolution:\n\n1. Check if the ConfigMap is created correctly.\n2. Verify that the pod deployment YAML file references the ConfigMap.\n3. Ensure the pod is running and has the correct environment variables set to use the ConfigMap.\n4. If using HPA (Horizontal Pod Autoscaler), check if it's referencing the correct ConfigMap.",
+      "parentObject": ""
+    },
+    {
+      "kind": "ConfigMap",
+      "name": "knative-serving/config-certmanager",
+      "error": [
+        {
+          "Text": "ConfigMap config-certmanager is not used by any pods in the namespace",
+          "KubernetesDoc": "",
+          "Sensitive": []
+        }
+      ],
+      "details": "Error: ConfigMap \"config-certmanager\" is not used by any pods in the namespace.\n\nSolution:\n\n1. Check if the ConfigMap is referenced in a Deployment or StatefulSet.\n2. Verify that the ConfigMap is correctly created and has the expected data.\n3. If using a Service, check its spec.template.spec.containers.env section for references to the ConfigMap.\n4. If none of the above steps resolve the issue, delete the ConfigMap and recreate it.",
+      "parentObject": ""
+    },
+    {
+      "kind": "ConfigMap",
+      "name": "knative-serving/config-defaults",
+      "error": [
+        {
+          "Text": "ConfigMap config-defaults is not used by any pods in the namespace",
+          "KubernetesDoc": "",
+          "Sensitive": []
+        }
+      ],
+      "details": "Error: ConfigMap \"config-defaults\" is not used by any pods in the namespace.\n\nSolution:\n\n1. Check if the ConfigMap is correctly created and exists in the cluster.\n2. Verify that the pod configuration references the correct ConfigMap name.\n3. If using a Deployment, check if the `spec.template.spec.containers.env` section is referencing the ConfigMap.\n4. Run `kubectl get pods -l \u003cselector\u003e -o yaml` to inspect pod configurations.\n5. Update or recreate the pod to reference the ConfigMap correctly.",
+      "parentObject": ""
+    },
+    {
+      "kind": "ConfigMap",
+      "name": "knative-serving/config-deployment",
+      "error": [
+        {
+          "Text": "ConfigMap config-deployment is not used by any pods in the namespace",
+          "KubernetesDoc": "",
+          "Sensitive": []
+        }
+      ],
+      "details": "Error: ConfigMap \"config-deployment\" is not used by any pods in the namespace.\n\nSolution:\n\n1. Check if the ConfigMap is correctly created and exists in the namespace.\n2. Verify that the pod(s) using this ConfigMap are properly configured to reference it.\n3. If using a Deployment, ensure the ConfigMap is referenced in the deployment's template.\n4. Run `kubectl get pods` and `kubectl describe configmap config-deployment` for more details.",
+      "parentObject": ""
+    },
+    {
+      "kind": "ConfigMap",
+      "name": "knative-serving/config-domain",
+      "error": [
+        {
+          "Text": "ConfigMap config-domain is not used by any pods in the namespace",
+          "KubernetesDoc": "",
+          "Sensitive": []
+        }
+      ],
+      "details": "Error: ConfigMap \"config-domain\" is not used by any pods in namespace.\n\nSolution:\n\n1. Check if config-domain ConfigMap exists in current namespace.\n2. Verify if pods are referencing correct ConfigMap name and namespace.\n3. Update pod configurations to reference the correct ConfigMap.",
+      "parentObject": ""
+    },
+    {
+      "kind": "ConfigMap",
+      "name": "knative-serving/config-features",
+      "error": [
+        {
+          "Text": "ConfigMap config-features is not used by any pods in the namespace",
+          "KubernetesDoc": "",
+          "Sensitive": []
+        }
+      ],
+      "details": "Error: ConfigMap \"config-features\" is not used by any pods in the namespace.\n\nSolution:\n\n1. Check if the ConfigMap is referenced in a Deployment or StatefulSet YAML file.\n2. Verify that the pod's configuration matches the ConfigMap name and namespace.\n3. If using a Deployment, check if the `spec.template.spec.containers.env` section references the ConfigMap.\n4. Update the pod's configuration to reference the ConfigMap correctly.",
+      "parentObject": ""
+    },
+    {
+      "kind": "ConfigMap",
+      "name": "knative-serving/config-gc",
+      "error": [
+        {
+          "Text": "ConfigMap config-gc is not used by any pods in the namespace",
+          "KubernetesDoc": "",
+          "Sensitive": []
+        }
+      ],
+      "details": "Error: ConfigMap \"config-gc\" is not used by any pods in the namespace.\n\nSolution:\n\n1. Check if config-gc is still required and delete it if unnecessary.\n2. Verify that no pod references config-gc in its configuration files.\n3. If necessary, recreate the pod or update its configuration to reference a different ConfigMap.",
+      "parentObject": ""
+    },
+    {
+      "kind": "ConfigMap",
+      "name": "knative-serving/config-istio",
+      "error": [
+        {
+          "Text": "ConfigMap config-istio is not used by any pods in the namespace",
+          "KubernetesDoc": "",
+          "Sensitive": []
+        }
+      ],
+      "details": "Error: ConfigMap \"config-istio\" is not used by any pods in the namespace.\n\nSolution:\n\n1. Check if the ConfigMap is referenced in a Deployment or StatefulSet.\n2. Verify that the ConfigMap name and namespace are correct.\n3. If using Istio, check if the config-istio ConfigMap is created automatically.\n4. Create a new pod referencing the ConfigMap to test its usage.",
+      "parentObject": ""
+    },
+    {
+      "kind": "ConfigMap",
+      "name": "knative-serving/config-leader-election",
+      "error": [
+        {
+          "Text": "ConfigMap config-leader-election is not used by any pods in the namespace",
+          "KubernetesDoc": "",
+          "Sensitive": []
+        }
+      ],
+      "details": "Error: ConfigMap \"config-leader-election\" is not used by any pods in the namespace.\n\nSolution: \n1. Check if the ConfigMap is correctly created and has the correct name.\n2. Verify that the pod configuration references the ConfigMap with the correct name.\n3. If using a Deployment, check the `spec.template.spec.containers.volumeMounts` section for the ConfigMap reference.",
+      "parentObject": ""
+    },
+    {
+      "kind": "ConfigMap",
+      "name": "knative-serving/config-logging",
+      "error": [
+        {
+          "Text": "ConfigMap config-logging is not used by any pods in the namespace",
+          "KubernetesDoc": "",
+          "Sensitive": []
+        }
+      ],
+      "details": "Error: ConfigMap \"config-logging\" is not used by any pods in the namespace.\n\nSolution:\n\n1. Check if the ConfigMap is referenced in a Deployment or Pod YAML file.\n2. Verify that the ConfigMap name and namespace match the one being referred to.\n3. If using a Deployment, check if the ConfigMap is mounted as a volume.\n4. If none of the above steps resolve the issue, try deleting and recreating the ConfigMap.",
+      "parentObject": ""
+    },
+    {
+      "kind": "ConfigMap",
+      "name": "knative-serving/config-network",
+      "error": [
+        {
+          "Text": "ConfigMap config-network is not used by any pods in the namespace",
+          "KubernetesDoc": "",
+          "Sensitive": []
+        }
+      ],
+      "details": "Error: ConfigMap \"config-network\" is not used by any pods in the namespace.\n\nSolution:\n\n1. Check if config-network ConfigMap is referenced in a Deployment or Pod YAML file.\n2. Verify that the ConfigMap name and namespace match in the YAML files.\n3. If no reference found, delete the unused ConfigMap to avoid clutter.",
+      "parentObject": ""
+    },
+    {
+      "kind": "ConfigMap",
+      "name": "knative-serving/config-observability",
+      "error": [
+        {
+          "Text": "ConfigMap config-observability is not used by any pods in the namespace",
+          "KubernetesDoc": "",
+          "Sensitive": []
+        }
+      ],
+      "details": "Error: ConfigMap \"config-observability\" is not used by any pods in the namespace.\n\nSolution:\n\n1. Check if the ConfigMap is correctly created and deployed.\n2. Verify that the pods are using the correct ConfigMap name.\n3. If using a Deployment, check the `spec.template.spec.containers.volumeMounts` section for the ConfigMap reference.\n4. If still issues, try deleting and recreating the ConfigMap or the pods.",
+      "parentObject": ""
+    },
+    {
+      "kind": "ConfigMap",
+      "name": "knative-serving/config-tracing",
+      "error": [
+        {
+          "Text": "ConfigMap config-tracing is not used by any pods in the namespace",
+          "KubernetesDoc": "",
+          "Sensitive": []
+        }
+      ],
+      "details": "Error: ConfigMap \"config-tracing\" is not used by any pods in the namespace.\n\nSolution:\n\n1. Check if config-tracing ConfigMap exists and is correctly formatted.\n2. Verify that pods in the namespace are using the correct ConfigMap name or key.\n3. If using a deployment, check the deployment YAML for the correct ConfigMap reference.\n4. If none of the above steps resolve the issue, try deleting and recreating the ConfigMap.",
+      "parentObject": ""
+    },
+    {
+      "kind": "ConfigMap",
+      "name": "knative-serving/kube-root-ca.crt",
+      "error": [
+        {
+          "Text": "ConfigMap kube-root-ca.crt is not used by any pods in the namespace",
+          "KubernetesDoc": "",
+          "Sensitive": []
+        }
+      ],
+      "details": "Error: ConfigMap kube-root-ca.crt is not used by any pods in the namespace.\nSolution:\n\n1. Check if the ConfigMap is correctly created and has a valid name.\n2. Verify that the pod's deployment YAML file references the ConfigMap correctly.\n3. Ensure the pod's service account has access to the ConfigMap.\n4. Run `kubectl get cm kube-root-ca.crt -o yaml` to inspect the ConfigMap.",
+      "parentObject": ""
+    },
+    {
+      "kind": "ConfigMap",
+      "name": "kube-node-lease/kube-root-ca.crt",
+      "error": [
+        {
+          "Text": "ConfigMap kube-root-ca.crt is not used by any pods in the namespace",
+          "KubernetesDoc": "",
+          "Sensitive": []
+        }
+      ],
+      "details": "Error: ConfigMap kube-root-ca.crt is not used by any pods in the namespace.\nSolution:\n\n1. Check if the ConfigMap is correctly created and has a valid name.\n2. Verify that the pod's deployment YAML file references the ConfigMap correctly.\n3. Ensure the pod's service account has access to the ConfigMap.\n4. Run `kubectl get cm kube-root-ca.crt -o yaml` to inspect the ConfigMap.",
+      "parentObject": ""
+    },
+    {
+      "kind": "ConfigMap",
+      "name": "kube-public/cluster-info",
+      "error": [
+        {
+          "Text": "ConfigMap cluster-info is not used by any pods in the namespace",
+          "KubernetesDoc": "",
+          "Sensitive": []
+        }
+      ],
+      "details": "Error: ConfigMap \"cluster-info\" is not used by any pods in the namespace.\n\nSolution:\n\n1. Run `kubectl get cm cluster-info -o yaml` to view ConfigMap details.\n2. Check if the ConfigMap is referenced in pod configurations using `kubectl get deployments,pods -o wide`.\n3. If not, create a new deployment or update an existing one to reference the ConfigMap.\n4. Verify that pods are now using the ConfigMap with `kubectl describe pod \u003cpod_name\u003e`.",
+      "parentObject": ""
+    },
+    {
+      "kind": "ConfigMap",
+      "name": "kube-public/kube-root-ca.crt",
+      "error": [
+        {
+          "Text": "ConfigMap kube-root-ca.crt is not used by any pods in the namespace",
+          "KubernetesDoc": "",
+          "Sensitive": []
+        }
+      ],
+      "details": "Error: ConfigMap kube-root-ca.crt is not used by any pods in the namespace.\nSolution:\n\n1. Check if the ConfigMap is correctly created and has a valid name.\n2. Verify that the pod's deployment YAML file references the ConfigMap correctly.\n3. Ensure the pod's service account has access to the ConfigMap.\n4. Run `kubectl get cm kube-root-ca.crt -o yaml` to inspect the ConfigMap.",
+      "parentObject": ""
+    },
+    {
+      "kind": "ConfigMap",
+      "name": "kube-system/extension-apiserver-authentication",
+      "error": [
+        {
+          "Text": "ConfigMap extension-apiserver-authentication is not used by any pods in the namespace",
+          "KubernetesDoc": "",
+          "Sensitive": []
+        }
+      ],
+      "details": "Error: ConfigMap extension-apiserver-authentication is not used by any pods in the namespace.\nSolution:\n\n1. Check if pods are using the correct ConfigMap name.\n2. Verify that the ConfigMap is correctly created and deployed.\n3. If using a Deployment, check if the ConfigMap is referenced in the deployment YAML file.\n4. Run `kubectl get cm extension-apiserver-authentication -o yaml` to inspect the ConfigMap.\n5. Check namespace and ensure pods are running in the correct namespace.",
+      "parentObject": ""
+    },
+    {
+      "kind": "ConfigMap",
+      "name": "kube-system/kube-apiserver-legacy-service-account-token-tracking",
+      "error": [
+        {
+          "Text": "ConfigMap kube-apiserver-legacy-service-account-token-tracking is not used by any pods in the namespace",
+          "KubernetesDoc": "",
+          "Sensitive": []
+        }
+      ],
+      "details": "Error: ConfigMap kube-apiserver-legacy-service-account-token-tracking is not used by any pods in the namespace.\n\nSolution: \n1. Run `kubectl get cm -A` to list all ConfigMaps across namespaces.\n2. Check if the ConfigMap is present in the desired namespace.\n3. If present, run `kubectl describe pod \u003cpod_name\u003e` to verify it's using the ConfigMap.\n4. If not, delete the unused ConfigMap with `kubectl delete cm kube-apiserver-legacy-service-account-token-tracking`.",
+      "parentObject": ""
+    },
+    {
+      "kind": "ConfigMap",
+      "name": "kube-system/kube-root-ca.crt",
+      "error": [
+        {
+          "Text": "ConfigMap kube-root-ca.crt is not used by any pods in the namespace",
+          "KubernetesDoc": "",
+          "Sensitive": []
+        }
+      ],
+      "details": "Error: ConfigMap kube-root-ca.crt is not used by any pods in the namespace.\nSolution:\n\n1. Check if the ConfigMap is correctly created and has a valid name.\n2. Verify that the pod's deployment YAML file references the ConfigMap correctly.\n3. Ensure the pod's service account has access to the ConfigMap.\n4. Run `kubectl get cm kube-root-ca.crt -o yaml` to inspect the ConfigMap.",
+      "parentObject": ""
+    },
+    {
+      "kind": "ConfigMap",
+      "name": "kube-system/kubeadm-config",
+      "error": [
+        {
+          "Text": "ConfigMap kubeadm-config is not used by any pods in the namespace",
+          "KubernetesDoc": "",
+          "Sensitive": []
+        }
+      ],
+      "details": "Error: ConfigMap kubeadm-config is not used by any pods in the namespace.\nSolution: \n1. Run `kubectl get cm -A` to list all ConfigMaps across namespaces.\n2. Verify if 'kubeadm-config' is present and its contents are correct.\n3. Check for pod deployments that use this ConfigMap with `kubectl describe pod \u003cpod_name\u003e`.\n4. If no pods use it, delete the ConfigMap with `kubectl delete cm kubeadm-config`.",
+      "parentObject": ""
+    },
+    {
+      "kind": "ConfigMap",
+      "name": "kube-system/kubelet-config",
+      "error": [
+        {
+          "Text": "ConfigMap kubelet-config is not used by any pods in the namespace",
+          "KubernetesDoc": "",
+          "Sensitive": []
+        }
+      ],
+      "details": "Error: ConfigMap kubelet-config is not used by any pods in the namespace ---.\nSolution: \n1. Check if the ConfigMap is still needed and delete it if not.\n2. Verify that the ConfigMap is referenced in a Deployment or StatefulSet YAML file.\n3. Update the YAML file to reference a different ConfigMap or remove the reference altogether.",
+      "parentObject": ""
+    },
+    {
+      "kind": "ConfigMap",
+      "name": "kubeflow-user-example-com/kube-root-ca.crt",
+      "error": [
+        {
+          "Text": "ConfigMap kube-root-ca.crt is not used by any pods in the namespace",
+          "KubernetesDoc": "",
+          "Sensitive": []
+        }
+      ],
+      "details": "Error: ConfigMap kube-root-ca.crt is not used by any pods in the namespace.\nSolution:\n\n1. Check if the ConfigMap is correctly created and has a valid name.\n2. Verify that the pod's deployment YAML file references the ConfigMap correctly.\n3. Ensure the pod's service account has access to the ConfigMap.\n4. Run `kubectl get cm kube-root-ca.crt -o yaml` to inspect the ConfigMap.",
+      "parentObject": ""
+    },
+    {
+      "kind": "ConfigMap",
+      "name": "kubeflow-user-example-com/metadata-grpc-configmap",
+      "error": [
+        {
+          "Text": "ConfigMap metadata-grpc-configmap is not used by any pods in the namespace",
+          "KubernetesDoc": "",
+          "Sensitive": []
+        }
+      ],
+      "details": "Error: ConfigMap metadata-grpc-configmap is not used by any pods in the namespace.\n\nSolution:\n\n1. Run `kubectl get cm -A` to list all ConfigMaps across namespaces.\n2. Check if the ConfigMap is referenced in any pod's configuration files (e.g., deployment YAML).\n3. If not, delete the unused ConfigMap with `kubectl delete cm metadata-grpc-configmap`.\n4. Verify the deletion with `kubectl get cm -A`.",
+      "parentObject": ""
+    },
+    {
+      "kind": "ConfigMap",
+      "name": "kubeflow/centraldashboard-config",
+      "error": [
+        {
+          "Text": "ConfigMap centraldashboard-config is not used by any pods in the namespace",
+          "KubernetesDoc": "",
+          "Sensitive": []
+        }
+      ],
+      "details": "Error: ConfigMap centraldashboard-config is not used by any pods in the namespace.\nSolution:\n\n1. Check if the ConfigMap is still needed.\n2. If yes, check if the pod definition has been updated to use it.\n3. Verify that the ConfigMap is correctly created and accessible.\n4. If not needed, delete the unused ConfigMap.",
+      "parentObject": ""
+    },
+    {
+      "kind": "ConfigMap",
+      "name": "kubeflow/centraldashboard-parameters",
+      "error": [
+        {
+          "Text": "ConfigMap centraldashboard-parameters is not used by any pods in the namespace",
+          "KubernetesDoc": "",
+          "Sensitive": []
+        }
+      ],
+      "details": "Error: ConfigMap \"centraldashboard-parameters\" is not used by any pods in the namespace.\n\nSolution:\n\n1. Check if the ConfigMap is referenced in a Deployment or StatefulSet.\n2. Verify that the ConfigMap name and namespace are correct.\n3. If using Helm, check if the ConfigMap is included in the Chart's values.yaml file.\n4. Remove unused ConfigMaps to declutter resources.",
+      "parentObject": ""
+    },
+    {
+      "kind": "ConfigMap",
+      "name": "kubeflow/inferenceservice-config",
+      "error": [
+        {
+          "Text": "ConfigMap inferenceservice-config is not used by any pods in the namespace",
+          "KubernetesDoc": "",
+          "Sensitive": []
+        }
+      ],
+      "details": "Error: ConfigMap \"inferenceservice-config\" is not used by any pods in the namespace.\n\nSolution:\n\n1. Check if the ConfigMap is referenced in a Deployment or StatefulSet.\n2. Verify that the ConfigMap is correctly created and has the expected data.\n3. If using a Service, ensure it's referencing the correct ConfigMap.\n4. Delete unused ConfigMaps to clean up resources.",
+      "parentObject": ""
+    },
+    {
+      "kind": "ConfigMap",
+      "name": "kubeflow/jupyter-web-app-parameters-48gf6bbhmk",
+      "error": [
+        {
+          "Text": "ConfigMap jupyter-web-app-parameters-48gf6bbhmk is not used by any pods in the namespace",
+          "KubernetesDoc": "",
+          "Sensitive": []
+        }
+      ],
+      "details": "Error: ConfigMap \"jupyter-web-app-parameters-48gf6bbhmk\" is not used by any pods.\n\nSolution:\n\n1. Check if the ConfigMap was created in error and can be deleted.\n2. Verify that the ConfigMap has a matching label or annotation for the namespace.\n3. If using Helm, check if the release was successfully applied to the correct namespace.\n4. Manually inspect the pods in the namespace to ensure they are referencing the ConfigMap correctly.",
+      "parentObject": ""
+    },
+    {
+      "kind": "ConfigMap",
+      "name": "kubeflow/kfp-launcher",
+      "error": [
+        {
+          "Text": "ConfigMap kfp-launcher is not used by any pods in the namespace",
+          "KubernetesDoc": "",
+          "Sensitive": []
+        }
+      ],
+      "details": "Error: ConfigMap \"kfp-launcher\" is not used by any pods in the namespace.\n\nSolution:\n\n1. Check if the ConfigMap is created correctly.\n2. Verify that the pod configuration references the ConfigMap.\n3. Ensure the pod is running and has access to the ConfigMap.\n4. If using a Deployment, check if the pod template references the ConfigMap.",
+      "parentObject": ""
+    },
+    {
+      "kind": "ConfigMap",
+      "name": "kubeflow/kube-root-ca.crt",
+      "error": [
+        {
+          "Text": "ConfigMap kube-root-ca.crt is not used by any pods in the namespace",
+          "KubernetesDoc": "",
+          "Sensitive": []
+        }
+      ],
+      "details": "Error: ConfigMap kube-root-ca.crt is not used by any pods in the namespace.\nSolution:\n\n1. Check if the ConfigMap is correctly created and has a valid name.\n2. Verify that the pod's deployment YAML file references the ConfigMap correctly.\n3. Ensure the pod's service account has access to the ConfigMap.\n4. Run `kubectl get cm kube-root-ca.crt -o yaml` to inspect the ConfigMap.",
+      "parentObject": ""
+    },
+    {
+      "kind": "ConfigMap",
+      "name": "kubeflow/metadata-grpc-configmap",
+      "error": [
+        {
+          "Text": "ConfigMap metadata-grpc-configmap is not used by any pods in the namespace",
+          "KubernetesDoc": "",
+          "Sensitive": []
+        }
+      ],
+      "details": "Error: ConfigMap metadata-grpc-configmap is not used by any pods in the namespace.\n\nSolution:\n\n1. Run `kubectl get cm -A` to list all ConfigMaps across namespaces.\n2. Check if the ConfigMap is referenced in any pod's configuration files (e.g., deployment YAML).\n3. If not, delete the unused ConfigMap with `kubectl delete cm metadata-grpc-configmap`.\n4. Verify the deletion with `kubectl get cm -A`.",
+      "parentObject": ""
+    },
+    {
+      "kind": "ConfigMap",
+      "name": "kubeflow/tensorboards-web-app-parameters-6ffg2tt572",
+      "error": [
+        {
+          "Text": "ConfigMap tensorboards-web-app-parameters-6ffg2tt572 is not used by any pods in the namespace",
+          "KubernetesDoc": "",
+          "Sensitive": []
+        }
+      ],
+      "details": "Error: ConfigMap \"tensorboards-web-app-parameters-6ffg2tt572\" is not used by any pods in namespace.\n\nSolution: \n1. Check if the ConfigMap is still needed.\n2. Delete unused ConfigMaps to free resources.\n3. Verify pods are using updated ConfigMaps.",
+      "parentObject": ""
+    },
+    {
+      "kind": "ConfigMap",
+      "name": "kubeflow/trial-templates",
+      "error": [
+        {
+          "Text": "ConfigMap trial-templates is not used by any pods in the namespace",
+          "KubernetesDoc": "",
+          "Sensitive": []
+        }
+      ],
+      "details": "Error: ConfigMap \"trial-templates\" is not used by any pods in the namespace.\n\nSolution:\n\n1. Check if the ConfigMap is referenced in a Deployment or Pod YAML file.\n2. Verify that the ConfigMap name and namespace match in the YAML files.\n3. If using Helm, check if the ConfigMap is included in the Chart's templates.\n4. Run `kubectl get pods -l \u003cselector\u003e -n \u003cnamespace\u003e` to see if any pods are using the ConfigMap.",
+      "parentObject": ""
+    },
+    {
+      "kind": "ConfigMap",
+      "name": "kubeflow/volumes-web-app-parameters-mbftc78hbk",
+      "error": [
+        {
+          "Text": "ConfigMap volumes-web-app-parameters-mbftc78hbk is not used by any pods in the namespace",
+          "KubernetesDoc": "",
+          "Sensitive": []
+        }
+      ],
+      "details": "Error: ConfigMap volumes-web-app-parameters-mbftc78hbk is not used by any pods in the namespace.\n\nSolution:\n\n1. Check if the ConfigMap is referenced in a Deployment or StatefulSet.\n2. Verify that the pod name and namespace match the ConfigMap's labels.\n3. Update the pod's configuration to reference the ConfigMap correctly.\n4. If still issues, delete the unused ConfigMap.",
+      "parentObject": ""
+    },
+    {
+      "kind": "ConfigMap",
+      "name": "kubeflow/workflow-controller-configmap",
+      "error": [
+        {
+          "Text": "ConfigMap workflow-controller-configmap is not used by any pods in the namespace",
+          "KubernetesDoc": "",
+          "Sensitive": []
+        }
+      ],
+      "details": "Error: ConfigMap workflow-controller-configmap is not used by any pods in the namespace.\n\nSolution:\n\n1. Run `kubectl get cm -A` to list all ConfigMaps across namespaces.\n2. Check if the ConfigMap is referenced in a Deployment or StatefulSet using `kubectl describe \u003cdeployment/statefulset\u003e`.\n3. If not, delete the unused ConfigMap with `kubectl delete cm workflow-controller-configmap`.",
+      "parentObject": ""
+    },
+    {
+      "kind": "ConfigMap",
+      "name": "monitoring/k8sgpt-overview",
+      "error": [
+        {
+          "Text": "ConfigMap k8sgpt-overview is not used by any pods in the namespace",
+          "KubernetesDoc": "",
+          "Sensitive": []
+        }
+      ],
+      "details": "Error: ConfigMap \"k8sgpt-overview\" is not used by any pods in the namespace.\n\nSolution: \n1. Check if the ConfigMap is referenced in a Deployment or Pod YAML file.\n2. Verify that the ConfigMap name and namespace are correct.\n3. If unused, consider deleting the ConfigMap to avoid clutter.",
+      "parentObject": ""
+    },
+    {
+      "kind": "ConfigMap",
+      "name": "monitoring/kube-root-ca.crt",
+      "error": [
+        {
+          "Text": "ConfigMap kube-root-ca.crt is not used by any pods in the namespace",
+          "KubernetesDoc": "",
+          "Sensitive": []
+        }
+      ],
+      "details": "Error: ConfigMap kube-root-ca.crt is not used by any pods in the namespace.\nSolution:\n\n1. Check if the ConfigMap is correctly created and has a valid name.\n2. Verify that the pod's deployment YAML file references the ConfigMap correctly.\n3. Ensure the pod's service account has access to the ConfigMap.\n4. Run `kubectl get cm kube-root-ca.crt -o yaml` to inspect the ConfigMap.",
+      "parentObject": ""
+    },
+    {
+      "kind": "ConfigMap",
+      "name": "monitoring/monitoring-alertmanager-overview",
+      "error": [
+        {
+          "Text": "ConfigMap monitoring-alertmanager-overview is not used by any pods in the namespace",
+          "KubernetesDoc": "",
+          "Sensitive": []
+        }
+      ],
+      "details": "Error: ConfigMap monitoring-alertmanager-overview is not used by any pods in the namespace.\n\nSolution:\n\n1. Check if the ConfigMap is created and has correct data.\n2. Verify that the pod configuration references the ConfigMap correctly.\n3. Ensure the pod is running and has access to the ConfigMap.\n4. If still issues, try deleting and recreating the ConfigMap or pod.",
+      "parentObject": ""
+    },
+    {
+      "kind": "ConfigMap",
+      "name": "monitoring/monitoring-apiserver",
+      "error": [
+        {
+          "Text": "ConfigMap monitoring-apiserver is not used by any pods in the namespace",
+          "KubernetesDoc": "",
+          "Sensitive": []
+        }
+      ],
+      "details": "Error: ConfigMap \"monitoring-apiserver\" is not used by any pods in namespace, will be deleted.\n\nSolution:\n\n1. Run `kubectl get configmap monitoring-apiserver -n \u003cnamespace\u003e --output=yaml` to view the ConfigMap.\n2. Check if the ConfigMap is referenced in any Deployments or StatefulSets using `kubectl get deployments/statefulsets -n \u003cnamespace\u003e`.\n3. If not used, delete the ConfigMap with `kubectl delete configmap monitoring-apiserver -n \u003cnamespace\u003e`.",
+      "parentObject": ""
+    },
+    {
+      "kind": "ConfigMap",
+      "name": "monitoring/monitoring-cluster-total",
+      "error": [
+        {
+          "Text": "ConfigMap monitoring-cluster-total is not used by any pods in the namespace",
+          "KubernetesDoc": "",
+          "Sensitive": []
+        }
+      ],
+      "details": "Error: ConfigMap 'monitoring-cluster-total' is not used by any pods in the namespace.\n\nSolution:\n\n1. Check if the ConfigMap is created correctly.\n2. Verify that the pod configuration references the ConfigMap.\n3. If using a Deployment, check if the ConfigMap is mounted as a volume.\n4. If none of the above steps resolve the issue, try deleting and recreating the ConfigMap or the pod.",
+      "parentObject": ""
+    },
+    {
+      "kind": "ConfigMap",
+      "name": "monitoring/monitoring-controller-manager",
+      "error": [
+        {
+          "Text": "ConfigMap monitoring-controller-manager is not used by any pods in the namespace",
+          "KubernetesDoc": "",
+          "Sensitive": []
+        }
+      ],
+      "details": "Error: ConfigMap monitoring-controller-manager is not used by any pods in the namespace.\n\nSolution:\n\n1. Check if the ConfigMap is referenced in a Deployment or StatefulSet.\n2. Verify that the ConfigMap is created and has correct data.\n3. If using a Deployment, check if the `configMapRef` field is correctly set.\n4. Try deleting and recreating the ConfigMap to refresh its reference.",
+      "parentObject": ""
+    },
+    {
+      "kind": "ConfigMap",
+      "name": "monitoring/monitoring-etcd",
+      "error": [
+        {
+          "Text": "ConfigMap monitoring-etcd is not used by any pods in the namespace",
+          "KubernetesDoc": "",
+          "Sensitive": []
+        }
+      ],
+      "details": "Error: ConfigMap \"monitoring-etcd\" is not used by any pods in the namespace.\n\nSolution:\n\n1. Check if the ConfigMap is created and exists in the cluster.\n2. Verify that the pod specification uses the correct ConfigMap name and namespace.\n3. Ensure the pod is running and has a valid configuration file referencing the ConfigMap.\n4. If using Helm, check if the release is properly installed and configured.",
+      "parentObject": ""
+    },
+    {
+      "kind": "ConfigMap",
+      "name": "monitoring/monitoring-grafana-datasource",
+      "error": [
+        {
+          "Text": "ConfigMap monitoring-grafana-datasource is not used by any pods in the namespace",
+          "KubernetesDoc": "",
+          "Sensitive": []
+        }
+      ],
+      "details": "Error: ConfigMap monitoring-grafana-datasource is not used by any pods in the namespace.\nSolution: \n1. Check if the ConfigMap is referenced in a Deployment or StatefulSet YAML file.\n2. Verify that the ConfigMap name matches exactly in the YAML file.\n3. If still not found, try to delete and recreate the ConfigMap.",
+      "parentObject": ""
+    },
+    {
+      "kind": "ConfigMap",
+      "name": "monitoring/monitoring-grafana-overview",
+      "error": [
+        {
+          "Text": "ConfigMap monitoring-grafana-overview is not used by any pods in the namespace",
+          "KubernetesDoc": "",
+          "Sensitive": []
+        }
+      ],
+      "details": "Error: ConfigMap monitoring-grafana-overview is not used by any pods in the namespace.\n\nSolution:\n\n1. Check if the ConfigMap is referenced in a Deployment or StatefulSet.\n2. Verify that the ConfigMap name and namespace are correct.\n3. If using a YAML file, check for typos or incorrect indentation.\n4. Run `kubectl get cm monitoring-grafana-overview -o yaml` to inspect the ConfigMap's contents.\n5. Update or recreate the pod referencing the ConfigMap if necessary.",
+      "parentObject": ""
+    },
+    {
+      "kind": "ConfigMap",
+      "name": "monitoring/monitoring-k8s-coredns",
+      "error": [
+        {
+          "Text": "ConfigMap monitoring-k8s-coredns is not used by any pods in the namespace",
+          "KubernetesDoc": "",
+          "Sensitive": []
+        }
+      ],
+      "details": "Error: ConfigMap monitoring-k8s-coredns is not used by any pods in the namespace.\n\nSolution: \n1. Check if the ConfigMap is referenced in a Deployment or StatefulSet.\n2. Verify that the ConfigMap name and namespace are correct.\n3. If using a YAML file, check for typos or incorrect indentation.\n4. Run `kubectl get cm monitoring-k8s-coredns -o yaml` to inspect the ConfigMap.",
+      "parentObject": ""
+    },
+    {
+      "kind": "ConfigMap",
+      "name": "monitoring/monitoring-k8s-resources-cluster",
+      "error": [
+        {
+          "Text": "ConfigMap monitoring-k8s-resources-cluster is not used by any pods in the namespace",
+          "KubernetesDoc": "",
+          "Sensitive": []
+        }
+      ],
+      "details": "Error: ConfigMap monitoring-k8s-resources-cluster is not used by any pods in the namespace.\n\nSolution:\n\n1. Check if the ConfigMap is referenced in a Deployment or StatefulSet.\n2. Verify that the ConfigMap name and namespace are correct.\n3. If using Helm, check if the ConfigMap is being created correctly.\n4. Delete the unused ConfigMap to free up resources.",
+      "parentObject": ""
+    },
+    {
+      "kind": "ConfigMap",
+      "name": "monitoring/monitoring-k8s-resources-multicluster",
+      "error": [
+        {
+          "Text": "ConfigMap monitoring-k8s-resources-multicluster is not used by any pods in the namespace",
+          "KubernetesDoc": "",
+          "Sensitive": []
+        }
+      ],
+      "details": "Error: ConfigMap \"monitoring-k8s-resources-multicluster\" is not used by any pods in namespace.\n\nSolution: \n1. Check if ConfigMap is referenced in Deployment or StatefulSet YAML files.\n2. Verify if the ConfigMap name is correct and matches the one in the YAML files.\n3. If using a multicluster setup, ensure the ConfigMap is synced across clusters.",
+      "parentObject": ""
+    },
+    {
+      "kind": "ConfigMap",
+      "name": "monitoring/monitoring-k8s-resources-namespace",
+      "error": [
+        {
+          "Text": "ConfigMap monitoring-k8s-resources-namespace is not used by any pods in the namespace",
+          "KubernetesDoc": "",
+          "Sensitive": []
+        }
+      ],
+      "details": "Error: ConfigMap \"monitoring-k8s-resources-namespace\" is not used by any pods in namespace.\n\nSolution:\n\n1. Check if ConfigMap is referenced in Deployment or StatefulSet YAML files.\n2. Verify that the ConfigMap is correctly created and exists in the namespace.\n3. If no references found, delete unused ConfigMap to avoid clutter.",
+      "parentObject": ""
+    },
+    {
+      "kind": "ConfigMap",
+      "name": "monitoring/monitoring-k8s-resources-node",
+      "error": [
+        {
+          "Text": "ConfigMap monitoring-k8s-resources-node is not used by any pods in the namespace",
+          "KubernetesDoc": "",
+          "Sensitive": []
+        }
+      ],
+      "details": "Error: ConfigMap \"monitoring-k8s-resources-node\" is not used by any pods in namespace.\n\nSolution:\n\n1. Check if the ConfigMap is referenced in a Deployment or StatefulSet YAML file.\n2. Verify that the ConfigMap is correctly created and has a valid name.\n3. If using Helm, check if the ConfigMap is properly templated and deployed.\n4. Use `kubectl get cm monitoring-k8s-resources-node -o yaml` to inspect the ConfigMap configuration.",
+      "parentObject": ""
+    },
+    {
+      "kind": "ConfigMap",
+      "name": "monitoring/monitoring-k8s-resources-pod",
+      "error": [
+        {
+          "Text": "ConfigMap monitoring-k8s-resources-pod is not used by any pods in the namespace",
+          "KubernetesDoc": "",
+          "Sensitive": []
+        }
+      ],
+      "details": "Error: ConfigMap monitoring-k8s-resources-pod is not used by any pods in the namespace.\n\nSolution: \n1. Check if the ConfigMap is referenced in a Deployment or Pod YAML file.\n2. Verify that the namespace and pod names match exactly.\n3. If no reference found, update the ConfigMap to be used by a pod or delete it if unnecessary.",
+      "parentObject": ""
+    },
+    {
+      "kind": "ConfigMap",
+      "name": "monitoring/monitoring-k8s-resources-workload",
+      "error": [
+        {
+          "Text": "ConfigMap monitoring-k8s-resources-workload is not used by any pods in the namespace",
+          "KubernetesDoc": "",
+          "Sensitive": []
+        }
+      ],
+      "details": "Error: ConfigMap \"monitoring-k8s-resources-workload\" is not used by any pods in namespace.\n\nSolution: \n1. Check if ConfigMap is referenced in Deployment or StatefulSet YAML files.\n2. Verify that the ConfigMap name matches in both YAML and pod definition.\n3. If still issues, delete the ConfigMap and recreate it.",
+      "parentObject": ""
+    },
+    {
+      "kind": "ConfigMap",
+      "name": "monitoring/monitoring-k8s-resources-workloads-namespace",
+      "error": [
+        {
+          "Text": "ConfigMap monitoring-k8s-resources-workloads-namespace is not used by any pods in the namespace",
+          "KubernetesDoc": "",
+          "Sensitive": []
+        }
+      ],
+      "details": "Error: ConfigMap monitoring-k8s-resources-workloads-namespace is not used by any pods in the namespace.\nSolution: \n1. Check if the ConfigMap is correctly created and deployed.\n2. Verify that the pods are using the correct namespace for the ConfigMap.\n3. Update the pod's configuration to reference the ConfigMap.",
+      "parentObject": ""
+    },
+    {
+      "kind": "ConfigMap",
+      "name": "monitoring/monitoring-kubelet",
+      "error": [
+        {
+          "Text": "ConfigMap monitoring-kubelet is not used by any pods in the namespace",
+          "KubernetesDoc": "",
+          "Sensitive": []
+        }
+      ],
+      "details": "Error: ConfigMap \"monitoring-kubelet\" is not used by any pods in namespace, will be deleted.\n\nSolution:\n\n1. Check if ConfigMap is referenced in a Deployment or StatefulSet.\n2. If not, delete the ConfigMap using `kubectl delete configmap monitoring-kubelet`.\n3. Verify deletion with `kubectl get configmaps`.",
+      "parentObject": ""
+    },
+    {
+      "kind": "ConfigMap",
+      "name": "monitoring/monitoring-namespace-by-pod",
+      "error": [
+        {
+          "Text": "ConfigMap monitoring-namespace-by-pod is not used by any pods in the namespace",
+          "KubernetesDoc": "",
+          "Sensitive": []
+        }
+      ],
+      "details": "Error: ConfigMap \"monitoring-namespace-by-pod\" is not used by any pods in namespace, causing it to be deleted.\n\nSolution: \n1. Check if the ConfigMap is referenced in a Deployment or StatefulSet.\n2. Verify the ConfigMap name and namespace are correct.\n3. If unused, delete the ConfigMap using `kubectl delete cm monitoring-namespace-by-pod`.",
+      "parentObject": ""
+    },
+    {
+      "kind": "ConfigMap",
+      "name": "monitoring/monitoring-namespace-by-workload",
+      "error": [
+        {
+          "Text": "ConfigMap monitoring-namespace-by-workload is not used by any pods in the namespace",
+          "KubernetesDoc": "",
+          "Sensitive": []
+        }
+      ],
+      "details": "Error: ConfigMap \"monitoring-namespace-by-workload\" is not used by any pods in namespace.\n\nSolution:\n\n1. Check if ConfigMap is created correctly.\n2. Verify that pods are using the correct ConfigMap name.\n3. If no pods use it, delete the unused ConfigMap to free resources.",
+      "parentObject": ""
+    },
+    {
+      "kind": "ConfigMap",
+      "name": "monitoring/monitoring-node-cluster-rsrc-use",
+      "error": [
+        {
+          "Text": "ConfigMap monitoring-node-cluster-rsrc-use is not used by any pods in the namespace",
+          "KubernetesDoc": "",
+          "Sensitive": []
+        }
+      ],
+      "details": "Error: ConfigMap monitoring-node-cluster-rsrc-use is not used by any pods in the namespace.\n\nSolution:\n\n1. Check if the ConfigMap is referenced in a Deployment or StatefulSet YAML file.\n2. Verify that the ConfigMap name and namespace match the ones defined in the pod's configuration.\n3. If using a Helm chart, check if the ConfigMap is included in the values.yaml file.\n4. Delete unused ConfigMaps to declutter resources.",
+      "parentObject": ""
+    },
+    {
+      "kind": "ConfigMap",
+      "name": "monitoring/monitoring-node-rsrc-use",
+      "error": [
+        {
+          "Text": "ConfigMap monitoring-node-rsrc-use is not used by any pods in the namespace",
+          "KubernetesDoc": "",
+          "Sensitive": []
+        }
+      ],
+      "details": "Error: ConfigMap \"monitoring-node-rsrc-use\" is not used by any pods in namespace.\n\nSolution:\n\n1. Check if ConfigMap is referenced in Deployment or StatefulSet YAML files.\n2. Verify that the ConfigMap is correctly created and exists in the namespace.\n3. If unused, consider deleting the ConfigMap to free resources.",
+      "parentObject": ""
+    },
+    {
+      "kind": "ConfigMap",
+      "name": "monitoring/monitoring-nodes",
+      "error": [
+        {
+          "Text": "ConfigMap monitoring-nodes is not used by any pods in the namespace",
+          "KubernetesDoc": "",
+          "Sensitive": []
+        }
+      ],
+      "details": "Error: ConfigMap \"monitoring-nodes\" is not used by any pods in namespace.\n\nSolution:\n\n1. Check if the ConfigMap is referenced in pod templates or deployments.\n2. Verify that the ConfigMap is correctly created and exists in the namespace.\n3. If using a Deployment, check the `spec.template.spec.containers.env` section for references to the ConfigMap.\n4. Update or recreate pods/deployments to use the ConfigMap if necessary.",
+      "parentObject": ""
+    },
+    {
+      "kind": "ConfigMap",
+      "name": "monitoring/monitoring-nodes-aix",
+      "error": [
+        {
+          "Text": "ConfigMap monitoring-nodes-aix is not used by any pods in the namespace",
+          "KubernetesDoc": "",
+          "Sensitive": []
+        }
+      ],
+      "details": "Error: ConfigMap \"monitoring-nodes-aix\" is not used by any pods in namespace, will be deleted on next node update.\n\nSolution:\n\n1. Verify if the ConfigMap is referenced in any Deployment or StatefulSet.\n2. If not, delete the unused ConfigMap with `kubectl delete configmap monitoring-nodes-aix`.\n3. Optional: Remove the ConfigMap from your Kubernetes configuration files (e.g., `kustomization.yaml`).",
+      "parentObject": ""
+    },
+    {
+      "kind": "ConfigMap",
+      "name": "monitoring/monitoring-nodes-darwin",
+      "error": [
+        {
+          "Text": "ConfigMap monitoring-nodes-darwin is not used by any pods in the namespace",
+          "KubernetesDoc": "",
+          "Sensitive": []
+        }
+      ],
+      "details": "Error: ConfigMap \"monitoring-nodes-darwin\" is not used by any pods in namespace.\n\nSolution:\n\n1. Check if the ConfigMap is referenced in a Deployment or StatefulSet YAML file.\n2. Verify that the ConfigMap name and namespace match in the YAML file.\n3. If using Helm, check if the ConfigMap is being created by a Chart.\n4. Delete unused ConfigMaps to declutter the cluster.",
+      "parentObject": ""
+    },
+    {
+      "kind": "ConfigMap",
+      "name": "monitoring/monitoring-persistentvolumesusage",
+      "error": [
+        {
+          "Text": "ConfigMap monitoring-persistentvolumesusage is not used by any pods in the namespace",
+          "KubernetesDoc": "",
+          "Sensitive": []
+        }
+      ],
+      "details": "Error: ConfigMap \"monitoring-persistentvolumesusage\" is not used by any pods in the namespace.\n\nSolution: \n1. Check if the ConfigMap is correctly created and exists.\n2. Verify that the pod(s) using this ConfigMap are running and have the correct configuration.\n3. If no pods use the ConfigMap, consider deleting it to avoid cluttering the cluster.",
+      "parentObject": ""
+    },
+    {
+      "kind": "ConfigMap",
+      "name": "monitoring/monitoring-pod-total",
+      "error": [
+        {
+          "Text": "ConfigMap monitoring-pod-total is not used by any pods in the namespace",
+          "KubernetesDoc": "",
+          "Sensitive": []
+        }
+      ],
+      "details": "Error: ConfigMap monitoring-pod-total is not used by any pods in the namespace.\n\nSolution:\n\n1. Check if the ConfigMap is created correctly.\n2. Verify that the pod's configuration file references the ConfigMap.\n3. Ensure the pod is running and has a valid configuration.\n4. If still issues, delete the ConfigMap and recreate it.",
+      "parentObject": ""
+    },
+    {
+      "kind": "ConfigMap",
+      "name": "monitoring/monitoring-prometheus",
+      "error": [
+        {
+          "Text": "ConfigMap monitoring-prometheus is not used by any pods in the namespace",
+          "KubernetesDoc": "",
+          "Sensitive": []
+        }
+      ],
+      "details": "Error: ConfigMap monitoring-prometheus is not used by any pods in the namespace.\n\nSolution:\n\n1. Check if the ConfigMap is referenced in a Deployment or StatefulSet YAML file.\n2. Verify that the ConfigMap name and namespace are correct.\n3. If using Helm, check if the ConfigMap is installed as a dependency.\n4. Create a new pod referencing the ConfigMap to test its usage.",
+      "parentObject": ""
+    },
+    {
+      "kind": "ConfigMap",
+      "name": "monitoring/monitoring-proxy",
+      "error": [
+        {
+          "Text": "ConfigMap monitoring-proxy is not used by any pods in the namespace",
+          "KubernetesDoc": "",
+          "Sensitive": []
+        }
+      ],
+      "details": "Error: ConfigMap \"monitoring-proxy\" is not used by any pods in namespace, may be deleted.\n\nSolution:\n\n1. Check if the ConfigMap is still needed.\n2. If not, delete it using `kubectl delete configmap monitoring-proxy`.\n3. Verify deletion with `kubectl get configmaps`.",
+      "parentObject": ""
+    },
+    {
+      "kind": "ConfigMap",
+      "name": "monitoring/monitoring-scheduler",
+      "error": [
+        {
+          "Text": "ConfigMap monitoring-scheduler is not used by any pods in the namespace",
+          "KubernetesDoc": "",
+          "Sensitive": []
+        }
+      ],
+      "details": "Error: ConfigMap \"monitoring-scheduler\" is not used by any pods in namespace, indicating it may be safely deleted.\n\nSolution:\n\n1. Verify no pods are referencing the ConfigMap.\n2. Delete the ConfigMap using `kubectl delete configmap monitoring-scheduler`.\n3. If needed, recreate the ConfigMap with updated data or configuration.",
+      "parentObject": ""
+    },
+    {
+      "kind": "ConfigMap",
+      "name": "monitoring/monitoring-workload-total",
+      "error": [
+        {
+          "Text": "ConfigMap monitoring-workload-total is not used by any pods in the namespace",
+          "KubernetesDoc": "",
+          "Sensitive": []
+        }
+      ],
+      "details": "Error: ConfigMap \"monitoring-workload-total\" is not used by any pods in the namespace.\n\nSolution: \n1. Check if the ConfigMap is correctly created and deployed.\n2. Verify that the pod's configuration file references the ConfigMap.\n3. If using a Deployment, check the `spec.template.spec.containers.volumeMounts` section for the ConfigMap reference.\n4. Update or recreate the pod to use the ConfigMap.",
+      "parentObject": ""
+    },
+    {
+      "kind": "ConfigMap",
+      "name": "oauth2-proxy/kube-root-ca.crt",
+      "error": [
+        {
+          "Text": "ConfigMap kube-root-ca.crt is not used by any pods in the namespace",
+          "KubernetesDoc": "",
+          "Sensitive": []
+        }
+      ],
+      "details": "Error: ConfigMap kube-root-ca.crt is not used by any pods in the namespace.\nSolution:\n\n1. Check if the ConfigMap is correctly created and has a valid name.\n2. Verify that the pod's deployment YAML file references the ConfigMap correctly.\n3. Ensure the pod's service account has access to the ConfigMap.\n4. Run `kubectl get cm kube-root-ca.crt -o yaml` to inspect the ConfigMap.",
+      "parentObject": ""
+    },
+    {
+      "kind": "ConfigMap",
+      "name": "utilities/kube-root-ca.crt",
+      "error": [
+        {
+          "Text": "ConfigMap kube-root-ca.crt is not used by any pods in the namespace",
+          "KubernetesDoc": "",
+          "Sensitive": []
+        }
+      ],
+      "details": "Error: ConfigMap kube-root-ca.crt is not used by any pods in the namespace.\nSolution:\n\n1. Check if the ConfigMap is correctly created and has a valid name.\n2. Verify that the pod's deployment YAML file references the ConfigMap correctly.\n3. Ensure the pod's service account has access to the ConfigMap.\n4. Run `kubectl get cm kube-root-ca.crt -o yaml` to inspect the ConfigMap.",
+      "parentObject": ""
+    },
+    {
+      "kind": "PrometheusConfigRelabelReport",
+      "name": "monitoring/prometheus-monitoring-prometheus-0",
+      "error": [
+        {
+          "Text": "job_name:\nserviceMonitor/monitoring/k8sgpt-k8sgpt-operator-controller-manager-metrics-monitor/0\nrelabel_configs:\n- source_labels: [job]\n  separator: ;\n  target_label: __tmp_prometheus_job_name\n  replacement: $1\n  action: replace\n- source_labels: [__meta_kubernetes_service_label_control_plane, __meta_kubernetes_service_labelpresent_control_plane]\n  separator: ;\n  regex: (controller-manager);true\n  replacement: $1\n  action: keep\n- source_labels: [__meta_kubernetes_service_label_svc, __meta_kubernetes_service_labelpresent_svc]\n  separator: ;\n  regex: (k8sgpt);true\n  replacement: $1\n  action: keep\n- source_labels: [__meta_kubernetes_endpoint_port_name]\n  separator: ;\n  regex: https\n  replacement: $1\n  action: keep\n- source_labels: [__meta_kubernetes_endpoint_address_target_kind, __meta_kubernetes_endpoint_address_target_name]\n  separator: ;\n  regex: Node;(.*)\n  target_label: node\n  replacement: ${1}\n  action: replace\n- source_labels: [__meta_kubernetes_endpoint_address_target_kind, __meta_kubernetes_endpoint_address_target_name]\n  separator: ;\n  regex: Pod;(.*)\n  target_label: pod\n  replacement: ${1}\n  action: replace\n- source_labels: [__meta_kubernetes_namespace]\n  separator: ;\n  target_label: namespace\n  replacement: $1\n  action: replace\n- source_labels: [__meta_kubernetes_service_name]\n  separator: ;\n  target_label: service\n  replacement: $1\n  action: replace\n- source_labels: [__meta_kubernetes_pod_name]\n  separator: ;\n  target_label: pod\n  replacement: $1\n  action: replace\n- source_labels: [__meta_kubernetes_pod_container_name]\n  separator: ;\n  target_label: container\n  replacement: $1\n  action: replace\n- source_labels: [__meta_kubernetes_pod_phase]\n  separator: ;\n  regex: (Failed|Succeeded)\n  replacement: $1\n  action: drop\n- source_labels: [__meta_kubernetes_service_name]\n  separator: ;\n  target_label: job\n  replacement: ${1}\n  action: replace\n- separator: ;\n  target_label: endpoint\n  replacement: https\n  action: replace\n- source_labels: [__address__, __tmp_hash]\n  separator: ;\n  regex: (.+);\n  target_label: __tmp_hash\n  replacement: $1\n  action: replace\n- source_labels: [__tmp_hash]\n  separator: ;\n  modulus: 1\n  target_label: __tmp_hash\n  replacement: $1\n  action: hashmod\n- source_labels: [__tmp_hash, __tmp_disable_sharding]\n  separator: ;\n  regex: $(SHARD);|.+;.+\n  replacement: $1\n  action: keep\n\nkubernetes_sd_configs:\nrole: endpoints\nkubeconfig_file: \"\"\nfollow_redirects: true\nenable_http2: true\nnamespaces:\n  own_namespace: false\n  names:\n  - utilities\n\n",
+          "KubernetesDoc": "",
+          "Sensitive": null
+        },
+        {
+          "Text": "job_name:\nserviceMonitor/monitoring/monitoring-alertmanager/0\nrelabel_configs:\n- source_labels: [job]\n  separator: ;\n  target_label: __tmp_prometheus_job_name\n  replacement: $1\n  action: replace\n- source_labels: [__meta_kubernetes_service_label_app, __meta_kubernetes_service_labelpresent_app]\n  separator: ;\n  regex: (monitoring-alertmanager);true\n  replacement: $1\n  action: keep\n- source_labels: [__meta_kubernetes_service_label_release, __meta_kubernetes_service_labelpresent_release]\n  separator: ;\n  regex: (monitoring);true\n  replacement: $1\n  action: keep\n- source_labels: [__meta_kubernetes_service_label_self_monitor, __meta_kubernetes_service_labelpresent_self_monitor]\n  separator: ;\n  regex: (true);true\n  replacement: $1\n  action: keep\n- source_labels: [__meta_kubernetes_endpoint_port_name]\n  separator: ;\n  regex: http-web\n  replacement: $1\n  action: keep\n- source_labels: [__meta_kubernetes_endpoint_address_target_kind, __meta_kubernetes_endpoint_address_target_name]\n  separator: ;\n  regex: Node;(.*)\n  target_label: node\n  replacement: ${1}\n  action: replace\n- source_labels: [__meta_kubernetes_endpoint_address_target_kind, __meta_kubernetes_endpoint_address_target_name]\n  separator: ;\n  regex: Pod;(.*)\n  target_label: pod\n  replacement: ${1}\n  action: replace\n- source_labels: [__meta_kubernetes_namespace]\n  separator: ;\n  target_label: namespace\n  replacement: $1\n  action: replace\n- source_labels: [__meta_kubernetes_service_name]\n  separator: ;\n  target_label: service\n  replacement: $1\n  action: replace\n- source_labels: [__meta_kubernetes_pod_name]\n  separator: ;\n  target_label: pod\n  replacement: $1\n  action: replace\n- source_labels: [__meta_kubernetes_pod_container_name]\n  separator: ;\n  target_label: container\n  replacement: $1\n  action: replace\n- source_labels: [__meta_kubernetes_pod_phase]\n  separator: ;\n  regex: (Failed|Succeeded)\n  replacement: $1\n  action: drop\n- source_labels: [__meta_kubernetes_service_name]\n  separator: ;\n  target_label: job\n  replacement: ${1}\n  action: replace\n- separator: ;\n  target_label: endpoint\n  replacement: http-web\n  action: replace\n- source_labels: [__address__, __tmp_hash]\n  separator: ;\n  regex: (.+);\n  target_label: __tmp_hash\n  replacement: $1\n  action: replace\n- source_labels: [__tmp_hash]\n  separator: ;\n  modulus: 1\n  target_label: __tmp_hash\n  replacement: $1\n  action: hashmod\n- source_labels: [__tmp_hash, __tmp_disable_sharding]\n  separator: ;\n  regex: $(SHARD);|.+;.+\n  replacement: $1\n  action: keep\n\nkubernetes_sd_configs:\nrole: endpoints\nkubeconfig_file: \"\"\nfollow_redirects: true\nenable_http2: true\nnamespaces:\n  own_namespace: false\n  names:\n  - monitoring\n\n",
+          "KubernetesDoc": "",
+          "Sensitive": null
+        },
+        {
+          "Text": "job_name:\nserviceMonitor/monitoring/monitoring-alertmanager/1\nrelabel_configs:\n- source_labels: [job]\n  separator: ;\n  target_label: __tmp_prometheus_job_name\n  replacement: $1\n  action: replace\n- source_labels: [__meta_kubernetes_service_label_app, __meta_kubernetes_service_labelpresent_app]\n  separator: ;\n  regex: (monitoring-alertmanager);true\n  replacement: $1\n  action: keep\n- source_labels: [__meta_kubernetes_service_label_release, __meta_kubernetes_service_labelpresent_release]\n  separator: ;\n  regex: (monitoring);true\n  replacement: $1\n  action: keep\n- source_labels: [__meta_kubernetes_service_label_self_monitor, __meta_kubernetes_service_labelpresent_self_monitor]\n  separator: ;\n  regex: (true);true\n  replacement: $1\n  action: keep\n- source_labels: [__meta_kubernetes_endpoint_port_name]\n  separator: ;\n  regex: reloader-web\n  replacement: $1\n  action: keep\n- source_labels: [__meta_kubernetes_endpoint_address_target_kind, __meta_kubernetes_endpoint_address_target_name]\n  separator: ;\n  regex: Node;(.*)\n  target_label: node\n  replacement: ${1}\n  action: replace\n- source_labels: [__meta_kubernetes_endpoint_address_target_kind, __meta_kubernetes_endpoint_address_target_name]\n  separator: ;\n  regex: Pod;(.*)\n  target_label: pod\n  replacement: ${1}\n  action: replace\n- source_labels: [__meta_kubernetes_namespace]\n  separator: ;\n  target_label: namespace\n  replacement: $1\n  action: replace\n- source_labels: [__meta_kubernetes_service_name]\n  separator: ;\n  target_label: service\n  replacement: $1\n  action: replace\n- source_labels: [__meta_kubernetes_pod_name]\n  separator: ;\n  target_label: pod\n  replacement: $1\n  action: replace\n- source_labels: [__meta_kubernetes_pod_container_name]\n  separator: ;\n  target_label: container\n  replacement: $1\n  action: replace\n- source_labels: [__meta_kubernetes_pod_phase]\n  separator: ;\n  regex: (Failed|Succeeded)\n  replacement: $1\n  action: drop\n- source_labels: [__meta_kubernetes_service_name]\n  separator: ;\n  target_label: job\n  replacement: ${1}\n  action: replace\n- separator: ;\n  target_label: endpoint\n  replacement: reloader-web\n  action: replace\n- source_labels: [__address__, __tmp_hash]\n  separator: ;\n  regex: (.+);\n  target_label: __tmp_hash\n  replacement: $1\n  action: replace\n- source_labels: [__tmp_hash]\n  separator: ;\n  modulus: 1\n  target_label: __tmp_hash\n  replacement: $1\n  action: hashmod\n- source_labels: [__tmp_hash, __tmp_disable_sharding]\n  separator: ;\n  regex: $(SHARD);|.+;.+\n  replacement: $1\n  action: keep\n\nkubernetes_sd_configs:\nrole: endpoints\nkubeconfig_file: \"\"\nfollow_redirects: true\nenable_http2: true\nnamespaces:\n  own_namespace: false\n  names:\n  - monitoring\n\n",
+          "KubernetesDoc": "",
+          "Sensitive": null
+        },
+        {
+          "Text": "job_name:\nserviceMonitor/monitoring/monitoring-apiserver/0\nrelabel_configs:\n- source_labels: [job]\n  separator: ;\n  target_label: __tmp_prometheus_job_name\n  replacement: $1\n  action: replace\n- source_labels: [__meta_kubernetes_service_label_component, __meta_kubernetes_service_labelpresent_component]\n  separator: ;\n  regex: (apiserver);true\n  replacement: $1\n  action: keep\n- source_labels: [__meta_kubernetes_service_label_provider, __meta_kubernetes_service_labelpresent_provider]\n  separator: ;\n  regex: (kubernetes);true\n  replacement: $1\n  action: keep\n- source_labels: [__meta_kubernetes_endpoint_port_name]\n  separator: ;\n  regex: https\n  replacement: $1\n  action: keep\n- source_labels: [__meta_kubernetes_endpoint_address_target_kind, __meta_kubernetes_endpoint_address_target_name]\n  separator: ;\n  regex: Node;(.*)\n  target_label: node\n  replacement: ${1}\n  action: replace\n- source_labels: [__meta_kubernetes_endpoint_address_target_kind, __meta_kubernetes_endpoint_address_target_name]\n  separator: ;\n  regex: Pod;(.*)\n  target_label: pod\n  replacement: ${1}\n  action: replace\n- source_labels: [__meta_kubernetes_namespace]\n  separator: ;\n  target_label: namespace\n  replacement: $1\n  action: replace\n- source_labels: [__meta_kubernetes_service_name]\n  separator: ;\n  target_label: service\n  replacement: $1\n  action: replace\n- source_labels: [__meta_kubernetes_pod_name]\n  separator: ;\n  target_label: pod\n  replacement: $1\n  action: replace\n- source_labels: [__meta_kubernetes_pod_container_name]\n  separator: ;\n  target_label: container\n  replacement: $1\n  action: replace\n- source_labels: [__meta_kubernetes_pod_phase]\n  separator: ;\n  regex: (Failed|Succeeded)\n  replacement: $1\n  action: drop\n- source_labels: [__meta_kubernetes_service_name]\n  separator: ;\n  target_label: job\n  replacement: ${1}\n  action: replace\n- source_labels: [__meta_kubernetes_service_label_component]\n  separator: ;\n  regex: (.+)\n  target_label: job\n  replacement: ${1}\n  action: replace\n- separator: ;\n  target_label: endpoint\n  replacement: https\n  action: replace\n- source_labels: [__address__, __tmp_hash]\n  separator: ;\n  regex: (.+);\n  target_label: __tmp_hash\n  replacement: $1\n  action: replace\n- source_labels: [__tmp_hash]\n  separator: ;\n  modulus: 1\n  target_label: __tmp_hash\n  replacement: $1\n  action: hashmod\n- source_labels: [__tmp_hash, __tmp_disable_sharding]\n  separator: ;\n  regex: $(SHARD);|.+;.+\n  replacement: $1\n  action: keep\n\nkubernetes_sd_configs:\nrole: endpoints\nkubeconfig_file: \"\"\nfollow_redirects: true\nenable_http2: true\nnamespaces:\n  own_namespace: false\n  names:\n  - default\n\n",
+          "KubernetesDoc": "",
+          "Sensitive": null
+        },
+        {
+          "Text": "job_name:\nserviceMonitor/monitoring/monitoring-coredns/0\nrelabel_configs:\n- source_labels: [job]\n  separator: ;\n  target_label: __tmp_prometheus_job_name\n  replacement: $1\n  action: replace\n- source_labels: [__meta_kubernetes_service_label_app, __meta_kubernetes_service_labelpresent_app]\n  separator: ;\n  regex: (monitoring-coredns);true\n  replacement: $1\n  action: keep\n- source_labels: [__meta_kubernetes_service_label_release, __meta_kubernetes_service_labelpresent_release]\n  separator: ;\n  regex: (monitoring);true\n  replacement: $1\n  action: keep\n- source_labels: [__meta_kubernetes_endpoint_port_name]\n  separator: ;\n  regex: http-metrics\n  replacement: $1\n  action: keep\n- source_labels: [__meta_kubernetes_endpoint_address_target_kind, __meta_kubernetes_endpoint_address_target_name]\n  separator: ;\n  regex: Node;(.*)\n  target_label: node\n  replacement: ${1}\n  action: replace\n- source_labels: [__meta_kubernetes_endpoint_address_target_kind, __meta_kubernetes_endpoint_address_target_name]\n  separator: ;\n  regex: Pod;(.*)\n  target_label: pod\n  replacement: ${1}\n  action: replace\n- source_labels: [__meta_kubernetes_namespace]\n  separator: ;\n  target_label: namespace\n  replacement: $1\n  action: replace\n- source_labels: [__meta_kubernetes_service_name]\n  separator: ;\n  target_label: service\n  replacement: $1\n  action: replace\n- source_labels: [__meta_kubernetes_pod_name]\n  separator: ;\n  target_label: pod\n  replacement: $1\n  action: replace\n- source_labels: [__meta_kubernetes_pod_container_name]\n  separator: ;\n  target_label: container\n  replacement: $1\n  action: replace\n- source_labels: [__meta_kubernetes_pod_phase]\n  separator: ;\n  regex: (Failed|Succeeded)\n  replacement: $1\n  action: drop\n- source_labels: [__meta_kubernetes_service_name]\n  separator: ;\n  target_label: job\n  replacement: ${1}\n  action: replace\n- source_labels: [__meta_kubernetes_service_label_jobLabel]\n  separator: ;\n  regex: (.+)\n  target_label: job\n  replacement: ${1}\n  action: replace\n- separator: ;\n  target_label: endpoint\n  replacement: http-metrics\n  action: replace\n- source_labels: [__address__, __tmp_hash]\n  separator: ;\n  regex: (.+);\n  target_label: __tmp_hash\n  replacement: $1\n  action: replace\n- source_labels: [__tmp_hash]\n  separator: ;\n  modulus: 1\n  target_label: __tmp_hash\n  replacement: $1\n  action: hashmod\n- source_labels: [__tmp_hash, __tmp_disable_sharding]\n  separator: ;\n  regex: $(SHARD);|.+;.+\n  replacement: $1\n  action: keep\n\nkubernetes_sd_configs:\nrole: endpoints\nkubeconfig_file: \"\"\nfollow_redirects: true\nenable_http2: true\nnamespaces:\n  own_namespace: false\n  names:\n  - kube-system\n\n",
+          "KubernetesDoc": "",
+          "Sensitive": null
+        },
+        {
+          "Text": "job_name:\nserviceMonitor/monitoring/monitoring-grafana/0\nrelabel_configs:\n- source_labels: [job]\n  separator: ;\n  target_label: __tmp_prometheus_job_name\n  replacement: $1\n  action: replace\n- source_labels: [__meta_kubernetes_service_label_app_kubernetes_io_instance, __meta_kubernetes_service_labelpresent_app_kubernetes_io_instance]\n  separator: ;\n  regex: (monitoring);true\n  replacement: $1\n  action: keep\n- source_labels: [__meta_kubernetes_service_label_app_kubernetes_io_name, __meta_kubernetes_service_labelpresent_app_kubernetes_io_name]\n  separator: ;\n  regex: (grafana);true\n  replacement: $1\n  action: keep\n- source_labels: [__meta_kubernetes_endpoint_port_name]\n  separator: ;\n  regex: http-web\n  replacement: $1\n  action: keep\n- source_labels: [__meta_kubernetes_endpoint_address_target_kind, __meta_kubernetes_endpoint_address_target_name]\n  separator: ;\n  regex: Node;(.*)\n  target_label: node\n  replacement: ${1}\n  action: replace\n- source_labels: [__meta_kubernetes_endpoint_address_target_kind, __meta_kubernetes_endpoint_address_target_name]\n  separator: ;\n  regex: Pod;(.*)\n  target_label: pod\n  replacement: ${1}\n  action: replace\n- source_labels: [__meta_kubernetes_namespace]\n  separator: ;\n  target_label: namespace\n  replacement: $1\n  action: replace\n- source_labels: [__meta_kubernetes_service_name]\n  separator: ;\n  target_label: service\n  replacement: $1\n  action: replace\n- source_labels: [__meta_kubernetes_pod_name]\n  separator: ;\n  target_label: pod\n  replacement: $1\n  action: replace\n- source_labels: [__meta_kubernetes_pod_container_name]\n  separator: ;\n  target_label: container\n  replacement: $1\n  action: replace\n- source_labels: [__meta_kubernetes_pod_phase]\n  separator: ;\n  regex: (Failed|Succeeded)\n  replacement: $1\n  action: drop\n- source_labels: [__meta_kubernetes_service_name]\n  separator: ;\n  target_label: job\n  replacement: ${1}\n  action: replace\n- source_labels: [__meta_kubernetes_service_label_monitoring]\n  separator: ;\n  regex: (.+)\n  target_label: job\n  replacement: ${1}\n  action: replace\n- separator: ;\n  target_label: endpoint\n  replacement: http-web\n  action: replace\n- source_labels: [__address__, __tmp_hash]\n  separator: ;\n  regex: (.+);\n  target_label: __tmp_hash\n  replacement: $1\n  action: replace\n- source_labels: [__tmp_hash]\n  separator: ;\n  modulus: 1\n  target_label: __tmp_hash\n  replacement: $1\n  action: hashmod\n- source_labels: [__tmp_hash, __tmp_disable_sharding]\n  separator: ;\n  regex: $(SHARD);|.+;.+\n  replacement: $1\n  action: keep\n\nkubernetes_sd_configs:\nrole: endpoints\nkubeconfig_file: \"\"\nfollow_redirects: true\nenable_http2: true\nnamespaces:\n  own_namespace: false\n  names:\n  - monitoring\n\n",
+          "KubernetesDoc": "",
+          "Sensitive": null
+        }
+      ],
+      "details": "Based on the provided configuration files, I will describe the Kubernetes service and pod labels, namespaces, ports, and containers they match for each `job_name`.\n\n**Job: monitoring/monitoring/prometheus**\n\n* Service Labels:\n\t+ app.kubernetes.io/name: prometheus\n\t+ app.kubernetes.io/instance: monitoring\n* Pod Labels:\n\t+ none (not specified)\n* Namespaces:\n\t+ monitoring\n* Ports:\n\t+ 9090 (prometheus port)\n* Containers:\n\t+ prometheus\n\n**Job: monitoring/monitoring/alertmanager**\n\n* Service Labels:\n\t+ app.kubernetes.io/name: alertmanager\n\t+ app.kubernetes.io/instance: monitoring\n* Pod Labels:\n\t+ none (not specified)\n* Namespaces:\n\t+ monitoring\n* Ports:\n\t+ 9093 (alertmanager port)\n* Containers:\n\t+ alertmanager\n\n**Job: monitoring/monitoring/grafana**\n\n* Service Labels:\n\t+ app.kubernetes.io/name: grafana\n\t+ app.kubernetes.io/instance: monitoring\n* Pod Labels:\n\t+ none (not specified)\n* Namespaces:\n\t+ monitoring\n* Ports:\n\t+ 3000 (grafana port)\n* Containers:\n\t+ grafana\n\n**Job: monitoring/monitoring/node-exporter**\n\n* Service Labels:\n\t+ app.kubernetes.io/name: node-exporter\n\t+ app.kubernetes.io/instance: monitoring\n* Pod Labels:\n\t+ none (not specified)\n* Namespaces:\n\t+ monitoring\n* Ports:\n\t+ 9100 (node-exporter port)\n* Containers:\n\t+ node-exporter\n\n**Job: monitoring/monitoring/pod-exporter**\n\n* Service Labels:\n\t+ app.kubernetes.io/name: pod-exporter\n\t+ app.kubernetes.io/instance: monitoring\n* Pod Labels:\n\t+ none (not specified)\n* Namespaces:\n\t+ monitoring\n* Ports:\n\t+ 9104 (pod-exporter port)\n* Containers:\n\t+ pod-exporter\n\n**Job: monitoring/monitoring/service-exporter**\n\n* Service Labels:\n\t+ app.kubernetes.io/name: service-exporter\n\t+ app.kubernetes.io/instance: monitoring\n* Pod Labels:\n\t+ none (not specified)\n* Namespaces:\n\t+ monitoring\n* Ports:\n\t+ 9105 (service-exporter port)\n* Containers:\n\t+ service-exporter\n\n**Job: monitoring/monitoring/blackbox-exporter**\n\n* Service Labels:\n\t+ app.kubernetes.io/name: blackbox-exporter\n\t+ app.kubernetes.io/instance: monitoring\n* Pod Labels:\n\t+ none (not specified)\n* Namespaces:\n\t+ monitoring\n* Ports:\n\t+ 9115 (blackbox-exporter port)\n* Containers:\n\t+ blackbox-exporter\n\nThe message at the end of the configuration file indicates that Prometheus will scrape targets with at least one of the following label sets:\n\n* `app.kubernetes.io/name: prometheus` and `app.kubernetes.io/instance: monitoring`\n* `app.kubernetes.io/name: alertmanager` and `app.kubernetes.io/instance: monitoring`\n* `app.kubernetes.io/name: grafana` and `app.kubernetes.io/instance: monitoring`\n* `app.kubernetes.io/name: node-exporter` and `app.kubernetes.io/instance: monitoring`\n* `app.kubernetes.io/name: pod-exporter` and `app.kubernetes.io/instance: monitoring`\n* `app.kubernetes.io/name: service-exporter` and `app.kubernetes.io/instance: monitoring`\n* `app.kubernetes.io/name: blackbox-exporter` and `app.kubernetes.io/instance: monitoring`\n\nNote that the actual labels and values may vary depending on your specific Kubernetes cluster configuration.",
+      "parentObject": ""
+    }
+  ]
+}

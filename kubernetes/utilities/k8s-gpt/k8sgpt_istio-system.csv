@@ -1,0 +1,59 @@
+kind,name,error,details,parentObject,namespace,reason,explanation
+ConfigMap,istio-system/istio-gateway-status-leader,"[{'Text': 'ConfigMap istio-gateway-status-leader is not used by any pods in the namespace', 'KubernetesDoc': '', 'Sensitive': []}, {'Text': 'ConfigMap istio-gateway-status-leader is empty', 'KubernetesDoc': '', 'Sensitive': []}]","Error: ConfigMap istio-gateway-status-leader is not used by any pods and is empty.
+
+Solution:
+
+1. Check if Istio is installed correctly.
+2. Verify that there are no unused ConfigMaps in the namespace.
+3. Delete the unused ConfigMap `istio-gateway-status-leader`.
+4. Restart the Istio components for changes to take effect.",,N/A,N/A,N/A
+ConfigMap,istio-system/istio-leader,"[{'Text': 'ConfigMap istio-leader is not used by any pods in the namespace', 'KubernetesDoc': '', 'Sensitive': []}, {'Text': 'ConfigMap istio-leader is empty', 'KubernetesDoc': '', 'Sensitive': []}]","Error: ConfigMap ""istio-leader"" is not used by any pods and is empty.
+
+Solution:
+
+1. Check if `istio-leader` ConfigMap is required.
+2. If yes, create a pod that uses it.
+3. If no, delete the unused ConfigMap.",,N/A,N/A,N/A
+ConfigMap,istio-system/istio-namespace-controller-election,"[{'Text': 'ConfigMap istio-namespace-controller-election is not used by any pods in the namespace', 'KubernetesDoc': '', 'Sensitive': []}, {'Text': 'ConfigMap istio-namespace-controller-election is empty', 'KubernetesDoc': '', 'Sensitive': []}]","Error: ConfigMap istio-namespace-controller-election is not used by any pods and is empty.
+
+Solution: 
+1. Check if Istio components are deployed.
+2. Verify namespace configuration.
+3. Update or delete unused ConfigMaps.",,N/A,N/A,N/A
+ConfigMap,istio-system/istio-sidecar-injector,"[{'Text': 'ConfigMap istio-sidecar-injector is not used by any pods in the namespace', 'KubernetesDoc': '', 'Sensitive': []}]","Error: ConfigMap ""istio-sidecar-injector"" is not used by any pods in the namespace.
+
+Solution: 
+1. Check if Istio is installed and running.
+2. Verify that the namespace has an active Istio configuration.
+3. Run `kubectl label namespace <namespace> istio-injection=enabled` to enable sidecar injection.
+4. Restart or re-deploy affected pods.",,N/A,N/A,N/A
+ConfigMap,istio-system/kube-root-ca.crt,"[{'Text': 'ConfigMap kube-root-ca.crt is not used by any pods in the namespace', 'KubernetesDoc': '', 'Sensitive': []}]","Error: ConfigMap kube-root-ca.crt is not used by any pods in the namespace.
+Solution:
+
+1. Check if the ConfigMap is correctly created and has a valid name.
+2. Verify that the pod's deployment YAML file references the ConfigMap correctly.
+3. Ensure the pod's service account has access to the ConfigMap.
+4. Run `kubectl get cm kube-root-ca.crt -o yaml` to inspect the ConfigMap.",,N/A,N/A,N/A
+Service,istio-system/cluster-local-gateway,"[{'Text': 'Service istio-system/cluster-local-gateway has event failed to get cpu utilization: unable to get metrics for resource cpu: unable to fetch metrics from resource metrics API: the server is currently unable to handle the request (get pods.metrics.k8s.io)', 'KubernetesDoc': '', 'Sensitive': None}, {'Text': 'Service istio-system/cluster-local-gateway has event invalid metrics (1 invalid out of 1), first error is: failed to get cpu resource metric value: failed to get cpu utilization: unable to get metrics for resource cpu: unable to fetch metrics from resource metrics API: the server is currently unable to handle the request (get pods.metrics.k8s.io)', 'KubernetesDoc': '', 'Sensitive': None}, {'Text': 'Service istio-system/cluster-local-gateway has event failed to get cpu utilization: unable to get metrics for resource cpu: no metrics returned from resource metrics API', 'KubernetesDoc': '', 'Sensitive': None}, {'Text': 'Service istio-system/cluster-local-gateway has event invalid metrics (1 invalid out of 1), first error is: failed to get cpu resource metric value: failed to get cpu utilization: unable to get metrics for resource cpu: no metrics returned from resource metrics API', 'KubernetesDoc': '', 'Sensitive': None}]","Error: Unable to fetch CPU utilization metrics from resource metrics API due to server overload or no metrics returned.
+
+Solution:
+
+1. Check if the `metrics.k8s.io` API is available.
+2. Verify that the cluster-local-gateway service has sufficient permissions to access the metrics API.
+3. If issue persists, try restarting the Istio components or increasing the pod's resource requests.",,N/A,N/A,N/A
+Service,istio-system/istio-ingressgateway,"[{'Text': 'Service istio-system/istio-ingressgateway has event failed to get cpu utilization: unable to get metrics for resource cpu: unable to fetch metrics from resource metrics API: the server is currently unable to handle the request (get pods.metrics.k8s.io)', 'KubernetesDoc': '', 'Sensitive': None}, {'Text': 'Service istio-system/istio-ingressgateway has event invalid metrics (1 invalid out of 1), first error is: failed to get cpu resource metric value: failed to get cpu utilization: unable to get metrics for resource cpu: unable to fetch metrics from resource metrics API: the server is currently unable to handle the request (get pods.metrics.k8s.io)', 'KubernetesDoc': '', 'Sensitive': None}, {'Text': 'Service istio-system/istio-ingressgateway has event failed to get cpu utilization: unable to get metrics for resource cpu: no metrics returned from resource metrics API', 'KubernetesDoc': '', 'Sensitive': None}, {'Text': 'Service istio-system/istio-ingressgateway has event invalid metrics (1 invalid out of 1), first error is: failed to get cpu resource metric value: failed to get cpu utilization: unable to get metrics for resource cpu: no metrics returned from resource metrics API', 'KubernetesDoc': '', 'Sensitive': None}]","Error: Unable to fetch metrics from resource metrics API due to server overload or invalid metrics.
+
+Solution:
+
+1. Check cluster load and reduce it if possible.
+2. Verify that `metrics.k8s.io` is enabled in the cluster.
+3. Restart the `istio-ingressgateway` pod.
+4. If issue persists, check for any configuration issues with `MetricsServer`.",,N/A,N/A,N/A
+Service,istio-system/istiod,"[{'Text': 'Service istio-system/istiod has event failed to get cpu utilization: unable to get metrics for resource cpu: unable to fetch metrics from resource metrics API: the server is currently unable to handle the request (get pods.metrics.k8s.io)', 'KubernetesDoc': '', 'Sensitive': None}, {'Text': 'Service istio-system/istiod has event invalid metrics (1 invalid out of 1), first error is: failed to get cpu resource metric value: failed to get cpu utilization: unable to get metrics for resource cpu: unable to fetch metrics from resource metrics API: the server is currently unable to handle the request (get pods.metrics.k8s.io)', 'KubernetesDoc': '', 'Sensitive': None}, {'Text': 'Service istio-system/istiod has event failed to get cpu utilization: unable to get metrics for resource cpu: no metrics returned from resource metrics API', 'KubernetesDoc': '', 'Sensitive': None}, {'Text': 'Service istio-system/istiod has event invalid metrics (1 invalid out of 1), first error is: failed to get cpu resource metric value: failed to get cpu utilization: unable to get metrics for resource cpu: no metrics returned from resource metrics API', 'KubernetesDoc': '', 'Sensitive': None}]","Error: Unable to fetch CPU utilization metrics from Kubernetes API due to server overload or invalid metrics.
+
+Solution:
+
+1. Check Kubernetes API server logs for errors.
+2. Verify that metrics-server is running and healthy in the cluster.
+3. Scale down or terminate pods causing high load on the API server.
+4. If issue persists, restart metrics-server pod or deploy a new one.",,N/A,N/A,N/A

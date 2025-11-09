@@ -1,10 +1,10 @@
 annotations:
-  artifacthub.io/changes: "- \"fix(schema): \U0001F41B allow additional properties
-    on `global`\"\n- \"fix(chart): update icon link to track upstream master branch\"\n-
-    \"fix(Traefik Hub): add strict check on admission cert\"\n- \"feat(Traefik Hub):
-    add v3.17 version mapping\"\n- \"chore(release): \U0001F680 publish v36.1.0\"\n"
+  artifacthub.io/changes: "- \"feat(hub): allow to specify admission controller certificate
+    from existing secret\"\n- \"feat(deps): update traefik docker tag to v3.5.2\"\n-
+    \"feat(accesslog): ✨ add genericCLF format\"\n- \"chore(release): \U0001F680 publish
+    v37.1.1\"\n"
 apiVersion: v2
-appVersion: v3.4.1
+appVersion: v3.5.2
 description: A Traefik based Kubernetes ingress controller
 home: https://traefik.io/
 icon: https://raw.githubusercontent.com/traefik/traefik/master/docs/content/assets/img/traefik.logo.png
@@ -24,4 +24,4 @@ sources:
 - https://github.com/traefik/traefik-helm-chart
 - https://github.com/traefik/traefik
 type: application
-version: 36.1.0
+version: 37.1.1

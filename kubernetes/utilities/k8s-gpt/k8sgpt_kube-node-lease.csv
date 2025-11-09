@@ -1,0 +1,8 @@
+kind,name,error,details,parentObject,namespace,reason,explanation
+ConfigMap,kube-node-lease/kube-root-ca.crt,"[{'Text': 'ConfigMap kube-root-ca.crt is not used by any pods in the namespace', 'KubernetesDoc': '', 'Sensitive': []}]","Error: ConfigMap kube-root-ca.crt is not used by any pods in the namespace.
+Solution:
+
+1. Check if the ConfigMap is correctly created and has a valid name.
+2. Verify that the pod's deployment YAML file references the ConfigMap correctly.
+3. Ensure the pod's service account has access to the ConfigMap.
+4. Run `kubectl get cm kube-root-ca.crt -o yaml` to inspect the ConfigMap.",,N/A,N/A,N/A

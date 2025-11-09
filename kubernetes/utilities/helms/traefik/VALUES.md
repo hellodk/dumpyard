@@ -1,6 +1,6 @@
 # traefik
 
-![Version: 36.1.0](https://img.shields.io/badge/Version-36.1.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: v3.4.1](https://img.shields.io/badge/AppVersion-v3.4.1-informational?style=flat-square)
+![Version: 37.1.1](https://img.shields.io/badge/Version-37.1.1-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: v3.5.2](https://img.shields.io/badge/AppVersion-v3.5.2-informational?style=flat-square)
 
 A Traefik based Kubernetes ingress controller
 
@@ -30,7 +30,12 @@ Kubernetes: `>=1.22.0-0`
 | additionalArguments | list | `[]` | Additional arguments to be passed at Traefik's binary See [CLI Reference](https://docs.traefik.io/reference/static-configuration/cli/) Use curly braces to pass values: `helm install --set="additionalArguments={--providers.kubernetesingress.ingressclass=traefik-internal,--log.level=DEBUG}"` |
 | additionalVolumeMounts | list | `[]` | Additional volumeMounts to add to the Traefik container |
 | affinity | object | `{}` | on nodes where no other traefik pods are scheduled. It should be used when hostNetwork: true to prevent port conflicts |
+| autoscaling.behavior | object | `{}` | behavior configures the scaling behavior of the target in both Up and Down directions (scaleUp and scaleDown fields respectively). |
 | autoscaling.enabled | bool | `false` | Create HorizontalPodAutoscaler object. See EXAMPLES.md for more details. |
+| autoscaling.maxReplicas | string | `nil` | maxReplicas is the upper limit for the number of pods that can be set by the autoscaler; cannot be smaller than MinReplicas. |
+| autoscaling.metrics | list | `[]` | metrics contains the specifications for which to use to calculate the desired replica count (the maximum replica count across all metrics will be used). |
+| autoscaling.minReplicas | string | `nil` | minReplicas is the lower limit for the number of replicas to which the autoscaler can scale down. It defaults to 1 pod. |
+| autoscaling.scaleTargetRef | object | `{"apiVersion":"apps/v1","kind":"Deployment","name":"{{ template \"traefik.fullname\" . }}"}` | scaleTargetRef points to the target resource to scale, and is used to the pods for which metrics should be collected, as well as to actually change the replica count. |
 | certificatesResolvers | object | `{}` | Certificates resolvers configuration. Ref: https://doc.traefik.io/traefik/https/acme/#certificate-resolvers See EXAMPLES.md for more details. |
 | commonLabels | object | `{}` | Add additional label to all resources |
 | core.defaultRuleSyntax | string | `""` | Can be used to use globally v2 router syntax. Deprecated since v3.4 /!\. See https://doc.traefik.io/traefik/v3.0/migration/v2-to-v3/#new-v3-syntax-notable-changes |
@@ -40,6 +45,7 @@ Kubernetes: `>=1.22.0-0`
 | deployment.dnsConfig | object | `{}` | Custom pod [DNS config](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#poddnsconfig-v1-core) |
 | deployment.dnsPolicy | string | `""` | Custom pod DNS policy. Apply if `hostNetwork: true` |
 | deployment.enabled | bool | `true` | Enable deployment |
+| deployment.goMemLimitPercentage | float | `0.9` | only takes effect when resources.limits.memory is set |
 | deployment.healthchecksHost | string | `""` |  |
 | deployment.healthchecksPort | string | `nil` |  |
 | deployment.healthchecksScheme | string | `nil` |  |
@@ -65,14 +71,15 @@ Kubernetes: `>=1.22.0-0`
 | experimental.fastProxy.debug | bool | `false` | Enable debug mode for the FastProxy implementation. |
 | experimental.fastProxy.enabled | bool | `false` | Enables the FastProxy implementation. |
 | experimental.kubernetesGateway.enabled | bool | `false` | Enable traefik experimental GatewayClass CRD |
-| experimental.plugins | object | `{}` | Enable traefik experimental plugins |
+| experimental.localPlugins | object | `{}` | Enable experimental local plugins |
+| experimental.plugins | object | `{}` | Enable experimental plugins |
 | extraObjects | list | `[]` | Extra objects to deploy (value evaluated as a template)  In some cases, it can avoid the need for additional, extended or adhoc deployments. See #595 for more details and traefik/tests/values/extra.yaml for example. |
 | gateway.annotations | object | `{}` | Additional gateway annotations (e.g. for cert-manager.io/issuer) |
 | gateway.enabled | bool | `true` | When providers.kubernetesGateway.enabled, deploy a default gateway |
 | gateway.infrastructure | object | `{}` | [Infrastructure](https://kubernetes.io/blog/2023/11/28/gateway-api-ga/#gateway-infrastructure-labels) |
 | gateway.listeners | object | `{"web":{"hostname":"","namespacePolicy":null,"port":8000,"protocol":"HTTP"}}` | Define listeners |
 | gateway.listeners.web.hostname | string | `""` | Optional hostname. See [Hostname](https://gateway-api.sigs.k8s.io/reference/spec/#gateway.networking.k8s.io/v1.Hostname) |
-| gateway.listeners.web.namespacePolicy | string | `nil` | Routes are restricted to namespace of the gateway [by default](https://gateway-api.sigs.k8s.io/reference/spec/#gateway.networking.k8s.io/v1.FromNamespaces |
+| gateway.listeners.web.namespacePolicy | object | `nil` | Routes are restricted to namespace of the gateway [by default](https://gateway-api.sigs.k8s.io/reference/spec/#gateway.networking.k8s.io/v1.FromNamespaces |
 | gateway.listeners.web.port | int | `8000` | Port is the network port. Multiple listeners may use the same port, subject to the Listener compatibility rules. The port must match a port declared in ports section. |
 | gateway.name | string | `""` | Set a custom name to gateway |
 | gateway.namespace | string | `""` | By default, Gateway is created in the same `Namespace` than Traefik. |
@@ -84,15 +91,18 @@ Kubernetes: `>=1.22.0-0`
 | global.checkNewVersion | bool | `true` |  |
 | global.sendAnonymousUsage | bool | `false` | Please take time to consider whether or not you wish to share anonymous data with us See https://doc.traefik.io/traefik/contributing/data-collection/ |
 | hostNetwork | bool | `false` | If hostNetwork is true, runs traefik in the host network namespace To prevent unschedulable pods due to port collisions, if hostNetwork=true and replicas>1, a pod anti-affinity is recommended and will be set if the affinity is left as default. |
+| hub.aigateway.enabled | bool | `false` | Set to true in order to enable AI Gateway. Requires a valid license token. |
+| hub.aigateway.maxRequestBodySize | string | `nil` | Hard limit for the size of request bodies inspected by the gateway. Accepts a plain integer representing **bytes**. The default value is `1048576` (1 MiB). |
+| hub.apimanagement.admission.annotations | object | `{}` | Set custom annotations. |
 | hub.apimanagement.admission.customWebhookCertificate | object | `{}` | Set custom certificate for the WebHook admission server. The certificate should be specified with _tls.crt_ and _tls.key_ in base64 encoding. |
 | hub.apimanagement.admission.listenAddr | string | `""` | WebHook admission server listen address. Default: "0.0.0.0:9943". |
 | hub.apimanagement.admission.restartOnCertificateChange | bool | `true` | Set it to false if you need to disable Traefik Hub pod restart when mutating webhook certificate is updated. It's done with a label update. |
 | hub.apimanagement.admission.secretName | string | `"hub-agent-cert"` | Certificate name of the WebHook admission server. Default: "hub-agent-cert". |
+| hub.apimanagement.admission.selfManagedCertificate | bool | `false` | By default, this chart handles directly the tls certificate required for the admission webhook. It's possible to disable this behavior and handle it outside of the chart. See EXAMPLES.md for more details. |
 | hub.apimanagement.enabled | bool | `false` | Set to true in order to enable API Management. Requires a valid license token. |
 | hub.apimanagement.openApi.validateRequestMethodAndPath | bool | `false` | When set to true, it will only accept paths and methods that are explicitly defined in its OpenAPI specification |
-| hub.experimental.aigateway | bool | `false` | Set to true in order to enable AI Gateway. Requires a valid license token. |
 | hub.namespaces | list | `[]` | By default, Traefik Hub provider watches all namespaces. When using `rbac.namespaced`, it will watch helm release namespace and namespaces listed in this array. |
-| hub.offline | bool | `false` | Disables all external network connections. |
+| hub.offline | string | `nil` | Disables all external network connections. |
 | hub.providers.consulCatalogEnterprise.cache | bool | `false` | Use local agent caching for catalog reads. |
 | hub.providers.consulCatalogEnterprise.connectAware | bool | `false` | Enable Consul Connect support. |
 | hub.providers.consulCatalogEnterprise.connectByDefault | bool | `false` | Consider every service as Connect capable by default. |
@@ -192,6 +202,7 @@ Kubernetes: `>=1.22.0-0`
 | logs.access.filters.retryattempts | bool | `false` | Set retryAttempts, to keep the access logs when at least one retry has happened |
 | logs.access.filters.statuscodes | string | `""` | Set statusCodes, to limit the access logs to requests with a status codes in the specified range |
 | logs.access.format | string | `nil` | Set [access log format](https://doc.traefik.io/traefik/observability/access-logs/#format) |
+| logs.access.timezone | string | `""` | Set [timezone](https://doc.traefik.io/traefik/observability/access-logs/#time-zones) |
 | logs.general.filePath | string | `""` | To write the logs into a log file, use the filePath option. |
 | logs.general.format | string | `nil` | Set [logs format](https://doc.traefik.io/traefik/observability/logs/#format) |
 | logs.general.level | string | `"INFO"` | Alternative logging levels are TRACE, DEBUG, INFO, WARN, ERROR, FATAL, and PANIC. |
@@ -227,12 +238,14 @@ Kubernetes: `>=1.22.0-0`
 | metrics.prometheus.headerLabels | object | `{}` | Add HTTP header labels to metrics. See EXAMPLES.md or upstream doc for usage. |
 | metrics.prometheus.manualRouting | bool | `false` | When manualRouting is true, it disables the default internal router in # order to allow creating a custom router for prometheus@internal service. |
 | metrics.prometheus.prometheusRule.additionalLabels | object | `{}` |  |
+| metrics.prometheus.prometheusRule.apiVersion | string | `"monitoring.coreos.com/v1"` |  |
 | metrics.prometheus.prometheusRule.enabled | bool | `false` | Enable optional CR for Prometheus Operator. See EXAMPLES.md for more details. |
 | metrics.prometheus.prometheusRule.namespace | string | `""` |  |
 | metrics.prometheus.service.annotations | object | `{}` |  |
 | metrics.prometheus.service.enabled | bool | `false` | Create a dedicated metrics service to use with ServiceMonitor |
 | metrics.prometheus.service.labels | object | `{}` |  |
 | metrics.prometheus.serviceMonitor.additionalLabels | object | `{}` |  |
+| metrics.prometheus.serviceMonitor.apiVersion | string | `"monitoring.coreos.com/v1"` |  |
 | metrics.prometheus.serviceMonitor.enableHttp2 | bool | `false` |  |
 | metrics.prometheus.serviceMonitor.enabled | bool | `false` | Enable optional CR for Prometheus Operator. See EXAMPLES.md for more details. |
 | metrics.prometheus.serviceMonitor.followRedirects | bool | `false` |  |
@@ -250,6 +263,8 @@ Kubernetes: `>=1.22.0-0`
 | oci_meta | object | `{"enabled":false,"images":{"hub":{"image":"traefik-hub","tag":"latest"},"proxy":{"image":"traefik","tag":"latest"}},"repo":"traefik"}` | Required for OCI Marketplace integration. See https://docs.public.content.oci.oraclecloud.com/en-us/iaas/Content/Marketplace/understanding-helm-charts.htm |
 | oci_meta.enabled | bool | `false` | Enable specific values for Oracle Cloud Infrastructure |
 | oci_meta.repo | string | `"traefik"` | It needs to be an ocir repo |
+| ocsp.enabled | bool | `false` | Enable OCSP stapling support. See https://doc.traefik.io/traefik/https/ocsp/#overview |
+| ocsp.responderOverrides | object | `{}` | Defines the OCSP responder URLs to use instead of the one provided by the certificate. |
 | persistence.accessMode | string | `"ReadWriteOnce"` |  |
 | persistence.annotations | object | `{}` |  |
 | persistence.enabled | bool | `false` | Enable persistence using Persistent Volume Claims ref: http://kubernetes.io/docs/user-guide/persistent-volumes/. It can be used to store TLS certificates along with `certificatesResolvers.<name>.acme.storage`  option |
@@ -331,6 +346,7 @@ Kubernetes: `>=1.22.0-0`
 | providers.kubernetesIngress.nativeLBByDefault | bool | `false` | Defines whether to use Native Kubernetes load-balancing mode by default. |
 | providers.kubernetesIngress.publishedService.enabled | bool | `true` | Enable [publishedService](https://doc.traefik.io/traefik/providers/kubernetes-ingress/#publishedservice) |
 | providers.kubernetesIngress.publishedService.pathOverride | string | `""` | Override path of Kubernetes Service used to copy status from. Format: namespace/servicename. Default to Service deployed with this Chart. |
+| providers.kubernetesIngress.strictPrefixMatching | bool | `false` | Defines whether to make prefix matching strictly comply with the Kubernetes Ingress specification. |
 | rbac | object | `{"aggregateTo":[],"enabled":true,"namespaced":false,"secretResourceNames":[]}` | Whether Role Based Access Control objects like roles and rolebindings should be created |
 | readinessProbe.failureThreshold | int | `1` | The number of consecutive failures allowed before considering the probe as failed. |
 | readinessProbe.initialDelaySeconds | int | `2` | The number of seconds to wait before starting the first probe. |

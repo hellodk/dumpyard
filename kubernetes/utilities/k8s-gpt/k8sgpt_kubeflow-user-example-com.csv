@@ -1,0 +1,16 @@
+kind,name,error,details,parentObject,namespace,reason,explanation
+ConfigMap,kubeflow-user-example-com/kube-root-ca.crt,"[{'Text': 'ConfigMap kube-root-ca.crt is not used by any pods in the namespace', 'KubernetesDoc': '', 'Sensitive': []}]","Error: ConfigMap kube-root-ca.crt is not used by any pods in the namespace.
+Solution:
+
+1. Check if the ConfigMap is correctly created and has a valid name.
+2. Verify that the pod's deployment YAML file references the ConfigMap correctly.
+3. Ensure the pod's service account has access to the ConfigMap.
+4. Run `kubectl get cm kube-root-ca.crt -o yaml` to inspect the ConfigMap.",,N/A,N/A,N/A
+ConfigMap,kubeflow-user-example-com/metadata-grpc-configmap,"[{'Text': 'ConfigMap metadata-grpc-configmap is not used by any pods in the namespace', 'KubernetesDoc': '', 'Sensitive': []}]","Error: ConfigMap metadata-grpc-configmap is not used by any pods in the namespace.
+
+Solution:
+
+1. Run `kubectl get cm -A` to list all ConfigMaps across namespaces.
+2. Check if the ConfigMap is referenced in any pod's configuration files (e.g., deployment YAML).
+3. If not, delete the unused ConfigMap with `kubectl delete cm metadata-grpc-configmap`.
+4. Verify the deletion with `kubectl get cm -A`.",,N/A,N/A,N/A

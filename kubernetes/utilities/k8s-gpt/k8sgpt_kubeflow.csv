@@ -1,0 +1,88 @@
+kind,name,error,details,parentObject,namespace,reason,explanation
+StatefulSet,kubeflow/metacontroller,"[{'Text': 'StatefulSet uses the service kubeflow/ which does not exist.', 'KubernetesDoc': '', 'Sensitive': [{'Unmasked': 'kubeflow', 'Masked': 'OTBXejF0cFc='}, {'Unmasked': '', 'Masked': ''}]}]","Error: StatefulSet uses service kubeflow/ which does not exist.
+Solution: 
+1. Verify the service name and namespace in your StatefulSet configuration.
+2. Create the missing service with `kubectl create` command or update the service reference in your StatefulSet YAML file.",,N/A,N/A,N/A
+ConfigMap,kubeflow/centraldashboard-config,"[{'Text': 'ConfigMap centraldashboard-config is not used by any pods in the namespace', 'KubernetesDoc': '', 'Sensitive': []}]","Error: ConfigMap centraldashboard-config is not used by any pods in the namespace.
+Solution:
+
+1. Check if the ConfigMap is still needed.
+2. If yes, check if the pod definition has been updated to use it.
+3. Verify that the ConfigMap is correctly created and accessible.
+4. If not needed, delete the unused ConfigMap.",,N/A,N/A,N/A
+ConfigMap,kubeflow/centraldashboard-parameters,"[{'Text': 'ConfigMap centraldashboard-parameters is not used by any pods in the namespace', 'KubernetesDoc': '', 'Sensitive': []}]","Error: ConfigMap ""centraldashboard-parameters"" is not used by any pods in the namespace.
+
+Solution:
+
+1. Check if the ConfigMap is referenced in a Deployment or StatefulSet.
+2. Verify that the ConfigMap name and namespace are correct.
+3. If using Helm, check if the ConfigMap is included in the Chart's values.yaml file.
+4. Remove unused ConfigMaps to declutter resources.",,N/A,N/A,N/A
+ConfigMap,kubeflow/inferenceservice-config,"[{'Text': 'ConfigMap inferenceservice-config is not used by any pods in the namespace', 'KubernetesDoc': '', 'Sensitive': []}]","Error: ConfigMap ""inferenceservice-config"" is not used by any pods in the namespace.
+
+Solution:
+
+1. Check if the ConfigMap is referenced in a Deployment or StatefulSet.
+2. Verify that the ConfigMap is correctly created and has the expected data.
+3. If using a Service, ensure it's referencing the correct ConfigMap.
+4. Delete unused ConfigMaps to clean up resources.",,N/A,N/A,N/A
+ConfigMap,kubeflow/jupyter-web-app-parameters-48gf6bbhmk,"[{'Text': 'ConfigMap jupyter-web-app-parameters-48gf6bbhmk is not used by any pods in the namespace', 'KubernetesDoc': '', 'Sensitive': []}]","Error: ConfigMap ""jupyter-web-app-parameters-48gf6bbhmk"" is not used by any pods.
+
+Solution:
+
+1. Check if the ConfigMap was created in error and can be deleted.
+2. Verify that the ConfigMap has a matching label or annotation for the namespace.
+3. If using Helm, check if the release was successfully applied to the correct namespace.
+4. Manually inspect the pods in the namespace to ensure they are referencing the ConfigMap correctly.",,N/A,N/A,N/A
+ConfigMap,kubeflow/kfp-launcher,"[{'Text': 'ConfigMap kfp-launcher is not used by any pods in the namespace', 'KubernetesDoc': '', 'Sensitive': []}]","Error: ConfigMap ""kfp-launcher"" is not used by any pods in the namespace.
+
+Solution:
+
+1. Check if the ConfigMap is created correctly.
+2. Verify that the pod configuration references the ConfigMap.
+3. Ensure the pod is running and has access to the ConfigMap.
+4. If using a Deployment, check if the pod template references the ConfigMap.",,N/A,N/A,N/A
+ConfigMap,kubeflow/kube-root-ca.crt,"[{'Text': 'ConfigMap kube-root-ca.crt is not used by any pods in the namespace', 'KubernetesDoc': '', 'Sensitive': []}]","Error: ConfigMap kube-root-ca.crt is not used by any pods in the namespace.
+Solution:
+
+1. Check if the ConfigMap is correctly created and has a valid name.
+2. Verify that the pod's deployment YAML file references the ConfigMap correctly.
+3. Ensure the pod's service account has access to the ConfigMap.
+4. Run `kubectl get cm kube-root-ca.crt -o yaml` to inspect the ConfigMap.",,N/A,N/A,N/A
+ConfigMap,kubeflow/metadata-grpc-configmap,"[{'Text': 'ConfigMap metadata-grpc-configmap is not used by any pods in the namespace', 'KubernetesDoc': '', 'Sensitive': []}]","Error: ConfigMap metadata-grpc-configmap is not used by any pods in the namespace.
+
+Solution:
+
+1. Run `kubectl get cm -A` to list all ConfigMaps across namespaces.
+2. Check if the ConfigMap is referenced in any pod's configuration files (e.g., deployment YAML).
+3. If not, delete the unused ConfigMap with `kubectl delete cm metadata-grpc-configmap`.
+4. Verify the deletion with `kubectl get cm -A`.",,N/A,N/A,N/A
+ConfigMap,kubeflow/tensorboards-web-app-parameters-6ffg2tt572,"[{'Text': 'ConfigMap tensorboards-web-app-parameters-6ffg2tt572 is not used by any pods in the namespace', 'KubernetesDoc': '', 'Sensitive': []}]","Error: ConfigMap ""tensorboards-web-app-parameters-6ffg2tt572"" is not used by any pods in namespace.
+
+Solution: 
+1. Check if the ConfigMap is still needed.
+2. Delete unused ConfigMaps to free resources.
+3. Verify pods are using updated ConfigMaps.",,N/A,N/A,N/A
+ConfigMap,kubeflow/trial-templates,"[{'Text': 'ConfigMap trial-templates is not used by any pods in the namespace', 'KubernetesDoc': '', 'Sensitive': []}]","Error: ConfigMap ""trial-templates"" is not used by any pods in the namespace.
+
+Solution:
+
+1. Check if the ConfigMap is referenced in a Deployment or Pod YAML file.
+2. Verify that the ConfigMap name and namespace match in the YAML files.
+3. If using Helm, check if the ConfigMap is included in the Chart's templates.
+4. Run `kubectl get pods -l <selector> -n <namespace>` to see if any pods are using the ConfigMap.",,N/A,N/A,N/A
+ConfigMap,kubeflow/volumes-web-app-parameters-mbftc78hbk,"[{'Text': 'ConfigMap volumes-web-app-parameters-mbftc78hbk is not used by any pods in the namespace', 'KubernetesDoc': '', 'Sensitive': []}]","Error: ConfigMap volumes-web-app-parameters-mbftc78hbk is not used by any pods in the namespace.
+
+Solution:
+
+1. Check if the ConfigMap is referenced in a Deployment or StatefulSet.
+2. Verify that the pod name and namespace match the ConfigMap's labels.
+3. Update the pod's configuration to reference the ConfigMap correctly.
+4. If still issues, delete the unused ConfigMap.",,N/A,N/A,N/A
+ConfigMap,kubeflow/workflow-controller-configmap,"[{'Text': 'ConfigMap workflow-controller-configmap is not used by any pods in the namespace', 'KubernetesDoc': '', 'Sensitive': []}]","Error: ConfigMap workflow-controller-configmap is not used by any pods in the namespace.
+
+Solution:
+
+1. Run `kubectl get cm -A` to list all ConfigMaps across namespaces.
+2. Check if the ConfigMap is referenced in a Deployment or StatefulSet using `kubectl describe <deployment/statefulset>`.
+3. If not, delete the unused ConfigMap with `kubectl delete cm workflow-controller-configmap`.",,N/A,N/A,N/A

@@ -1,0 +1,40 @@
+kind,name,error,details,parentObject,namespace,reason,explanation
+ConfigMap,kube-system/extension-apiserver-authentication,"[{'Text': 'ConfigMap extension-apiserver-authentication is not used by any pods in the namespace', 'KubernetesDoc': '', 'Sensitive': []}]","Error: ConfigMap extension-apiserver-authentication is not used by any pods in the namespace.
+Solution:
+
+1. Check if pods are using the correct ConfigMap name.
+2. Verify that the ConfigMap is correctly created and deployed.
+3. If using a Deployment, check if the ConfigMap is referenced in the deployment YAML file.
+4. Run `kubectl get cm extension-apiserver-authentication -o yaml` to inspect the ConfigMap.
+5. Check namespace and ensure pods are running in the correct namespace.",,N/A,N/A,N/A
+ConfigMap,kube-system/istio-ca-root-cert,"[{'Text': 'ConfigMap istio-ca-root-cert is not used by any pods in the namespace', 'KubernetesDoc': '', 'Sensitive': []}]","Error: ConfigMap ""istio-ca-root-cert"" is not used by any pods in the namespace.
+
+Solution: 
+1. Check if the ConfigMap is referenced in a Deployment or StatefulSet.
+2. Verify that the ConfigMap name and namespace are correct.
+3. If using Istio, check if the istio-ca-root-cert is being injected into pods through an Istio sidecar.",,N/A,N/A,N/A
+ConfigMap,kube-system/kube-apiserver-legacy-service-account-token-tracking,"[{'Text': 'ConfigMap kube-apiserver-legacy-service-account-token-tracking is not used by any pods in the namespace', 'KubernetesDoc': '', 'Sensitive': []}]","Error: ConfigMap kube-apiserver-legacy-service-account-token-tracking is not used by any pods in the namespace.
+
+Solution: 
+1. Run `kubectl get cm -A` to list all ConfigMaps across namespaces.
+2. Check if the ConfigMap is present in the desired namespace.
+3. If present, run `kubectl describe pod <pod_name>` to verify it's using the ConfigMap.
+4. If not, delete the unused ConfigMap with `kubectl delete cm kube-apiserver-legacy-service-account-token-tracking`.",,N/A,N/A,N/A
+ConfigMap,kube-system/kube-root-ca.crt,"[{'Text': 'ConfigMap kube-root-ca.crt is not used by any pods in the namespace', 'KubernetesDoc': '', 'Sensitive': []}]","Error: ConfigMap kube-root-ca.crt is not used by any pods in the namespace.
+Solution:
+
+1. Check if the ConfigMap is correctly created and has a valid name.
+2. Verify that the pod's deployment YAML file references the ConfigMap correctly.
+3. Ensure the pod's service account has access to the ConfigMap.
+4. Run `kubectl get cm kube-root-ca.crt -o yaml` to inspect the ConfigMap.",,N/A,N/A,N/A
+ConfigMap,kube-system/kubeadm-config,"[{'Text': 'ConfigMap kubeadm-config is not used by any pods in the namespace', 'KubernetesDoc': '', 'Sensitive': []}]","Error: ConfigMap kubeadm-config is not used by any pods in the namespace.
+Solution: 
+1. Run `kubectl get cm -A` to list all ConfigMaps across namespaces.
+2. Verify if 'kubeadm-config' is present and its contents are correct.
+3. Check for pod deployments that use this ConfigMap with `kubectl describe pod <pod_name>`.
+4. If no pods use it, delete the ConfigMap with `kubectl delete cm kubeadm-config`.",,N/A,N/A,N/A
+ConfigMap,kube-system/kubelet-config,"[{'Text': 'ConfigMap kubelet-config is not used by any pods in the namespace', 'KubernetesDoc': '', 'Sensitive': []}]","Error: ConfigMap kubelet-config is not used by any pods in the namespace ---.
+Solution: 
+1. Check if the ConfigMap is still needed and delete it if not.
+2. Verify that the ConfigMap is referenced in a Deployment or StatefulSet YAML file.
+3. Update the YAML file to reference a different ConfigMap or remove the reference altogether.",,N/A,N/A,N/A

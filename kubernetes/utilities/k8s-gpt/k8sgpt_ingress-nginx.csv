@@ -1,0 +1,22 @@
+kind,name,error,details,parentObject,namespace,reason,explanation
+ConfigMap,ingress-nginx/ingress-nginx-controller,"[{'Text': 'ConfigMap ingress-nginx-controller is not used by any pods in the namespace', 'KubernetesDoc': '', 'Sensitive': []}, {'Text': 'ConfigMap ingress-nginx-controller is empty', 'KubernetesDoc': '', 'Sensitive': []}]","Error: ConfigMap ""ingress-nginx-controller"" is not used by any pods and is empty.
+
+Solution:
+
+1. Check if the Ingress resource exists and is correctly configured.
+2. Verify that the namespace of the ConfigMap matches the namespace of the Ingress resource.
+3. If using Helm, run `helm upgrade` to ensure the ConfigMap is updated.
+4. Manually create a pod that uses the ConfigMap to resolve the issue.",,N/A,N/A,N/A
+ConfigMap,ingress-nginx/istio-ca-root-cert,"[{'Text': 'ConfigMap istio-ca-root-cert is not used by any pods in the namespace', 'KubernetesDoc': '', 'Sensitive': []}]","Error: ConfigMap ""istio-ca-root-cert"" is not used by any pods in the namespace.
+
+Solution: 
+1. Check if the ConfigMap is referenced in a Deployment or StatefulSet.
+2. Verify that the ConfigMap name and namespace are correct.
+3. If using Istio, check if the istio-ca-root-cert is being injected into pods through an Istio sidecar.",,N/A,N/A,N/A
+ConfigMap,ingress-nginx/kube-root-ca.crt,"[{'Text': 'ConfigMap kube-root-ca.crt is not used by any pods in the namespace', 'KubernetesDoc': '', 'Sensitive': []}]","Error: ConfigMap kube-root-ca.crt is not used by any pods in the namespace.
+Solution:
+
+1. Check if the ConfigMap is correctly created and has a valid name.
+2. Verify that the pod's deployment YAML file references the ConfigMap correctly.
+3. Ensure the pod's service account has access to the ConfigMap.
+4. Run `kubectl get cm kube-root-ca.crt -o yaml` to inspect the ConfigMap.",,N/A,N/A,N/A

@@ -1,17 +1,16 @@
-#ExecStart=/usr/local/bin/minikube tunnel
-
 [Unit]
 Description=Minikube Tunnel
-After=network.target
-ConditionExecStart=/usr/local/bin/minikube status --format '{{.Host}}' | grep "Running"
+After=network-online.target docker.service
+Wants=network-online.target
+ConditionExecStart=/usr/local/bin/minikube status --format "{{.Host}}" | grep -q "Running"
 
 [Service]
 Type=simple
-User=dk
-ExecStartPre=/usr/bin/env bash -c '! pgrep -f "minikube tunnel" >/dev/null'
+WorkingDirectory=/home/dk
+#ExecStartPre=/usr/bin/env bash -c '! pgrep -f "minikube tunnel" >/dev/null'
 ExecStart=/usr/bin/flock -n /tmp/minikube-tunnel.lock /usr/local/bin/minikube tunnel
-#Restart=always
-#RestartSec=50
+Restart=always
+RestartSec=600
 StandardOutput=append:/tmp/minikube-tunnel.log
 StandardError=append:/tmp/minikube-tunnel.err
 
