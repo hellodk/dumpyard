@@ -1,4 +1,8 @@
 BackOff
+Kill
+Error
+Exception
+Failed
 CrashLoopBackOff
 ImagePullBackOff
 ErrImagePull
