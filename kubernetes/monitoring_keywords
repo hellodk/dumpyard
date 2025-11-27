@@ -1,0 +1,81 @@
+BackOff
+CrashLoopBackOff
+ImagePullBackOff
+ErrImagePull
+RunContainerError
+CreateContainerError
+FailedMount
+FailedAttachVolume
+FailedScheduling
+OOMKilled
+Error
+Failed
+Evicted
+NodeNotReady
+NodeReady=False
+NodeSchedulable=False
+KubeletNotReady
+KubeletUnhealthy
+ImageGCFailed
+ContainerGCFailed
+CorruptDockerImage
+InvalidDiskCapacity
+OutOfDisk
+DiskPressure
+MemoryPressure
+PIDPressure
+NetworkUnavailable
+FailedScheduling
+0/… nodes are available
+InsufficientMemory
+InsufficientCPU
+No nodes available to schedule pods
+Tainted: node.kubernetes.io/*
+FailedCreatePodSandBox
+FailedCreateSandBox
+FailedKillPod
+CNIError
+Error syncing pod
+DNSConfigError
+Unhealthy (from CoreDNS)
+Readiness probe failed
+Liveness probe failed
+FailedMount
+MountVolume.SetUp failed
+FailedAttachVolume
+FailedMapVolume
+Volume resize failed
+AttachVolume.Attach failed
+PersistentVolumeClaim is not bound
+FailedCreate
+FailedUpdate
+ReplicaFailure
+ProgressDeadlineExceeded
+Deployment does not have minimum availability
+ImagePullBackOff (rollout stopped)
+FailedGetResourceMetric
+FailedComputeMetricsReplicas
+FailedGetScale
+FailedToScale
+Forbidden
+Unauthorized
+FailedToUpdateEndpoint
+FailedToCreateEndpoint
+CertificateExpired
+x509: certificate signed by unknown authority
+BackOff
+CrashLoopBackOff
+ImagePullBackOff
+ErrImagePull
+FailedCreatePodSandBox
+FailedScheduling
+FailedMount
+FailedAttachVolume
+OOMKilled
+NodeNotReady
+DiskPressure
+MemoryPressure
+Readiness probe failed
+Liveness probe failed
+ProgressDeadlineExceeded
+ReplicaFailure
