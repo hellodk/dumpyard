@@ -1,0 +1,145 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ldap-bootstrap
+  namespace: utilities
+data:
+  bootstrap.ldif: |
+    ############################
+    # Base Domain
+    ############################
+    dn: dc=hellodk,dc=io
+    objectClass: top
+    objectClass: dcObject
+    objectClass: organization
+    o: HelloDK Technologies
+    dc: hellodk
+
+    ############################
+    # People OU
+    ############################
+    dn: ou=People,dc=hellodk,dc=io
+    objectClass: organizationalUnit
+    ou: People
+
+    ############################
+    # Groups OU
+    ############################
+    dn: ou=Groups,dc=hellodk,dc=io
+    objectClass: organizationalUnit
+    ou: Groups
+
+    ############################
+    # User: dk
+    ############################
+    dn: uid=dk,ou=People,dc=hellodk,dc=io
+    objectClass: inetOrgPerson
+    cn: Deepak Gupta
+    sn: Gupta
+    uid: dk
+    mail: dk@hellodk.io
+    userPassword: {SSHA}TEpFKjfgBzoaN+XQAdWm7RHE0jWvDG3v
+
+    ############################
+    # User: billa
+    ############################
+    dn: uid=billa,ou=People,dc=hellodk,dc=io
+    objectClass: inetOrgPerson
+    cn: Billa Singh
+    sn: Singh
+    uid: billa
+    mail: billa@hellodk.io
+    userPassword: {SSHA}TEpFKjfgBzoaN+XQAdWm7RHE0jWvDG3v
+
+    ############################
+    # User: gunda
+    ############################
+    dn: uid=gunda,ou=People,dc=hellodk,dc=io
+    objectClass: inetOrgPerson
+    cn: Gunda Yadav
+    sn: Yadav
+    uid: gunda
+    mail: gunda@hellodk.io
+    userPassword: {SSHA}TEpFKjfgBzoaN+XQAdWm7RHE0jWvDG3v
+
+    ############################
+    # Group: admins
+    ############################
+    dn: cn=admins,ou=Groups,dc=hellodk,dc=io
+    objectClass: groupOfNames
+    cn: admins
+    member: uid=dk,ou=People,dc=hellodk,dc=io
+
+    ############################
+    # Group: developers
+    ############################
+    dn: cn=developers,ou=Groups,dc=hellodk,dc=io
+    objectClass: groupOfNames
+    cn: developers
+    member: uid=billa,ou=People,dc=hellodk,dc=io
+    member: uid=gunda,ou=People,dc=hellodk,dc=io
+
+
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ldap
+  namespace: utilities
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ldap
+  template:
+    metadata:
+      labels:
+        app: ldap
+    spec:
+      containers:
+      - name: ldap
+        image: osixia/openldap:1.5.0
+        args: ["--copy-service", "--loglevel", "info"]
+        ports:
+        - containerPort: 389
+        env:
+        - name: LDAP_DOMAIN
+          value: "hellodk.io"
+        - name: LDAP_BASE_DN
+          value: "dc=hellodk,dc=io"
+        - name: LDAP_ADMIN_PASSWORD
+          value: "Admin@123"
+        volumeMounts:
+        - name: ldap-data
+          mountPath: /var/lib/ldap
+        - name: ldap-config
+          mountPath: /etc/ldap/slapd.d
+        - name: bootstrap
+          mountPath: /container/service/slapd/assets/config/bootstrap/ldif/custom/bootstrap.ldif
+          subPath: bootstrap.ldif
+
+      volumes:
+      - name: ldap-data
+        emptyDir: {}       # 👉 replace with PVC for production
+      - name: ldap-config
+        emptyDir: {}
+      - name: bootstrap
+        configMap:
+          name: ldap-bootstrap
+
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: ldap
+  namespace: utilities
+spec:
+  selector:
+    app: ldap
+  ports:
+  - port: 389
+    targetPort: 389

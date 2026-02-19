@@ -39,7 +39,7 @@ metadata:
   name: jenkins-pv-claim
   namespace: utilities
 spec:
-  storageClassName: standard
+  storageClassName: nfs-client
   accessModes:
     - ReadWriteOnce
   resources:

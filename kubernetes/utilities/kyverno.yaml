@@ -1,0 +1,219 @@
+# ======================================================
+# OFFICIAL KYVERNO CRDs (VALID SCHEMA)
+# ======================================================
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: clusterpolicies.kyverno.io
+spec:
+  group: kyverno.io
+  scope: Cluster
+  names:
+    plural: clusterpolicies
+    singular: clusterpolicy
+    kind: ClusterPolicy
+    shortNames:
+      - cpol
+  versions:
+    - name: v1
+      served: true
+      storage: true
+      schema:
+        openAPIV3Schema:
+          type: object
+          properties:
+            spec:
+              type: object
+              x-kubernetes-preserve-unknown-fields: true
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: policies.kyverno.io
+spec:
+  group: kyverno.io
+  scope: Namespaced
+  names:
+    plural: policies
+    singular: policy
+    kind: Policy
+  versions:
+    - name: v1
+      served: true
+      storage: true
+      schema:
+        openAPIV3Schema:
+          type: object
+          properties:
+            spec:
+              type: object
+              x-kubernetes-preserve-unknown-fields: true
+
+---
+# ======================================================
+# NAMESPACE
+# ======================================================
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: kyverno
+
+---
+# ======================================================
+# SERVICE ACCOUNT + RBAC
+# ======================================================
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: kyverno
+  namespace: kyverno
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: kyverno
+rules:
+- apiGroups: ["*"]
+  resources: ["*"]
+  verbs: ["*"]
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: kyverno
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: kyverno
+subjects:
+- kind: ServiceAccount
+  name: kyverno
+  namespace: kyverno
+
+---
+# ======================================================
+# KYVERNO CONTROLLER
+# ======================================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kyverno
+  namespace: kyverno
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kyverno
+  template:
+    metadata:
+      labels:
+        app: kyverno
+    spec:
+      serviceAccountName: kyverno
+      containers:
+      - name: kyverno
+        image: ghcr.io/kyverno/kyverno:v1.12.3
+        args:
+          - "--enablePolicyException=false"
+        env:
+          - name: KYVERNO_NAMESPACE
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.namespace
+        ports:
+          - containerPort: 9443
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: kyverno
+  namespace: kyverno
+spec:
+  selector:
+    app: kyverno
+  ports:
+    - port: 443
+      targetPort: 9443
+
+---
+# ======================================================
+# ADMISSION WEBHOOK (CRITICAL)
+# ======================================================
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingWebhookConfiguration
+metadata:
+  name: kyverno-webhook
+webhooks:
+- name: validate.kyverno.svc
+  admissionReviewVersions: ["v1"]
+  sideEffects: None
+  failurePolicy: Fail
+  clientConfig:
+    service:
+      name: kyverno
+      namespace: kyverno
+      path: "/validate"
+  rules:
+  - apiGroups: ["*"]
+    apiVersions: ["*"]
+    operations: ["CREATE","UPDATE","DELETE"]
+    resources: ["*"]
+  timeoutSeconds: 5
+
+---
+# ======================================================
+# KYVERNO UI
+# ======================================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kyverno-ui
+  namespace: kyverno
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kyverno-ui
+  template:
+    metadata:
+      labels:
+        app: kyverno-ui
+    spec:
+      containers:
+      - name: ui
+        image: ghcr.io/kyverno/ui:latest
+        ports:
+        - containerPort: 8080
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: kyverno-ui
+  namespace: kyverno
+spec:
+  type: NodePort
+  selector:
+    app: kyverno-ui
+  ports:
+  - port: 80
+    targetPort: 8080
+    nodePort: 30080
+
+---
+# ======================================================
+# POLICY PACK (PRODUCTION)
+# ======================================================
+
+# 1️⃣ BLOCK NAMESPACE DELETION
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: block-namespace-deletion
+spec:
+  validationFailureAction: Enforce
+  background: false
+  rul

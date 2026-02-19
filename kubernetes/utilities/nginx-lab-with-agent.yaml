@@ -1,0 +1,272 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nginx-config
+  namespace: utilities
+data:
+  nginx.conf: |
+    worker_processes auto;
+
+    events {
+      worker_connections 65535;
+      multi_accept on;
+    }
+
+    http {
+      sendfile on;
+      tcp_nopush on;
+      tcp_nodelay on;
+      keepalive_timeout 65;
+
+      # ---------- Request correlation ----------
+      map $request_id $req_id {
+        default $request_id;
+        "" "$remote_addr-$msec";
+      }
+
+      # ---------- Structured high-fidelity telemetry ----------
+      log_format telemetry escape=json
+      '{'
+        '"ts":"$time_iso8601",'
+        '"req_id":"$req_id",'
+        '"client":"$remote_addr",'
+        '"method":"$request_method",'
+        '"path":"$uri",'
+        '"status":$status,'
+        '"bytes":$body_bytes_sent,'
+        '"rt":$request_time,'
+        '"uct":"$upstream_connect_time",'
+        '"uht":"$upstream_header_time",'
+        '"urt":"$upstream_response_time",'
+        '"upstream":"$upstream_addr",'
+        '"ustatus":"$upstream_status",'
+        '"referer":"$http_referer",'
+        '"ua":"$http_user_agent"'
+      '}';
+
+      access_log /var/log/nginx/access.log telemetry;
+      error_log  /var/log/nginx/error.log warn;
+
+      # ---------- Upstream with visibility ----------
+      upstream backend {
+        zone backend 256k;
+        server backend:8080;
+        keepalive 64;
+      }
+
+      # ---------- Process-level metrics ----------
+      server {
+        listen 80;
+
+        location /stub_status {
+          stub_status;
+          allow all;
+        }
+      }
+
+      # ---------- Application traffic ----------
+      server {
+        listen 80;
+
+        location / {
+          proxy_http_version 1.1;
+
+          proxy_set_header Host $host;
+          proxy_set_header X-Real-IP $remote_addr;
+          proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+          proxy_set_header X-Request-ID $req_id;
+
+          proxy_connect_timeout 5s;
+          proxy_send_timeout 60s;
+          proxy_read_timeout 60s;
+
+          proxy_next_upstream error timeout http_502 http_503 http_504;
+          proxy_next_upstream_tries 3;
+
+          proxy_pass http://backend;
+        }
+      }
+    }
+
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend
+  namespace: utilities
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: backend
+  template:
+    metadata:
+      labels:
+        app: backend
+    spec:
+      containers:
+      - name: backend
+        image: hashicorp/http-echo
+        args: ["-listen=:8080","-text=OK"]
+        env:
+        - name: TZ
+          value: Asia/Kolkata
+        ports:
+        - containerPort: 8080
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: backend
+  namespace: utilities
+spec:
+  selector:
+    app: backend
+  ports:
+  - port: 8080
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx
+  namespace: utilities
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: nginx
+  template:
+    metadata:
+      labels:
+        app: nginx
+    spec:
+      containers:
+
+      # ======================
+      # NGINX CONTAINER
+      # ======================
+      - name: nginx
+        image: docker.io/hellodk/avika-agent:${IMAGE_TAG}
+        env:
+        - name: TZ
+          value: Asia/Kolkata
+        ports:
+        - containerPort: 80
+        volumeMounts:
+        - name: nginx-config
+          mountPath: /etc/nginx/nginx.conf
+          subPath: nginx.conf
+
+
+      volumes:
+      - name: nginx-config
+        configMap:
+          name: nginx-config
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx
+  namespace: utilities
+spec:
+  type: NodePort
+  selector:
+    app: nginx
+  ports:
+  - name: http
+    port: 80
+    targetPort: 80
+    nodePort: 32767
+
+---
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: traffic-generator
+  namespace: utilities
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: traffic-generator
+  template:
+    metadata:
+      labels:
+        app: traffic-generator
+    spec:
+      containers:
+      - name: traffic
+        image: curlimages/curl:latest
+        env:
+        - name: TZ
+          value: Asia/Kolkata
+        command: ["/bin/sh","-c"]
+        args:
+          - |
+            while true; do
+              for i in 1 2 3 4 5; do
+                curl -s http://nginx/ > /dev/null;
+                curl -s -X POST http://nginx/ -d "load=$RANDOM" > /dev/null;
+                curl -s -X PUT http://nginx/ -d "update=$RANDOM" > /dev/null;
+              done;
+              sleep 0.2;
+            done
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: global-traffic-generator
+  namespace: utilities
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: global-traffic-generator
+  template:
+    metadata:
+      labels:
+        app: global-traffic-generator
+    spec:
+      containers:
+      - name: traffic
+        image: curlimages/curl:latest
+        env:
+        - name: TZ
+          value: Asia/Kolkata
+        command: ["/bin/sh","-c"]
+        args:
+          - |
+            IPS="\
+            8.8.8.8 1.1.1.1 52.95.110.1 13.107.21.200 \
+            91.198.174.192 203.0.113.10 185.199.108.153 \
+            34.117.59.81 151.101.1.69 104.16.132.229"
+
+            METHODS="GET POST PUT DELETE PATCH"
+            PATHS="/ /api/orders /api/users /login /checkout /health"
+
+            rand() { echo $((RANDOM % $1)); }
+
+            while true; do
+              IP=$(echo $IPS | tr ' ' '\n' | sed -n "$(( $(rand 10) + 1 ))p")
+              METHOD=$(echo $METHODS | tr ' ' '\n' | sed -n "$(( $(rand 5) + 1 ))p")
+              PATH=$(echo $PATHS | tr ' ' '\n' | sed -n "$(( $(rand 6) + 1 ))p")
+
+              PAYLOAD="{\"id\":$RANDOM,\"amount\":$((RANDOM%5000)),\"user\":\"u$RANDOM\"}"
+
+              if [ "$METHOD" = "GET" ]; then
+                curl -s http://nginx$PATH \
+                  -H "X-Forwarded-For: $IP" > /dev/null
+              else
+                curl -s -X $METHOD http://nginx$PATH \
+                  -H "X-Forwarded-For: $IP" \
+                  -H "Content-Type: application/json" \
+                  -d "$PAYLOAD" > /dev/null
+              fi
+
+              sleep 0.05
+            done

@@ -1049,12 +1049,16 @@ alertmanager:
     ##
     nodeSelector: {}
 
-    ## Define resources requests and limits for single Pods.
+    ## Define resources requests and limits for Alertmanager Pods.
     ## ref: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
-    ##
-    resources: {}
-    # requests:
-    #   memory: 400Mi
+    ## Recommended for production environments
+    resources:
+      requests:
+        memory: 128Mi
+        cpu: 50m
+      limits:
+        memory: 256Mi
+        cpu: 200m
 
     ## Pod anti-affinity can prevent the scheduler from placing Prometheus replicas on the same node.
     ## The default value "soft" means that the scheduler should *prefer* to not schedule two replica pods onto the same node but no guarantee is provided.
@@ -1212,10 +1216,42 @@ alertmanager:
 grafana:
   enabled: true
   namespaceOverride: "monitoring"
-  plugins:
-    - digrich-bubblechart-panel
-    - grafana-clock-panel
-    - btplc-status-dot-panel
+
+  ## Disable init-chown-data container - slow on NFS and files already have correct ownership
+  ## The recursive chown over NFS can take minutes/hours with many plugin files
+  initChownData:
+    enabled: false
+
+  ## Plugins are already installed on the PVC (/var/lib/grafana/plugins)
+  ## Leaving this empty prevents re-download attempts on every restart
+  ## To install new plugins: uncomment, deploy, then comment out again
+  plugins: []
+    # ===================
+    # Installed Plugins (on PVC, no download needed):
+    # - digrich-bubblechart-panel
+    # - grafana-clock-panel
+    # - btplc-status-dot-panel
+    # - grafana-polystat-panel
+    # - grafana-piechart-panel
+    # - marcusolsson-json-datasource
+    # - yesoreyeram-infinity-datasource
+    # - grafana-clickhouse-datasource
+    # - grafana-opensearch-datasource
+    # - redis-datasource
+    # ===================
+    # Built-in Datasources (Grafana 9+, no plugin needed):
+    # - Loki, Tempo, Jaeger, Zipkin, OpenTelemetry
+    # ===================
+    # Optional Plugins (uncomment to install):
+    # - grafana-googlesheets-datasource
+    # - grafana-github-datasource
+    # - grafana-oncall-app
+    # - grafana-sentry-datasource
+    # - camptocamp-prometheus-alertmanager-datasource
+    # - jdbranham-diagram-panel
+    # - grafana-synthetic-monitoring-app
+    # - grafana-mqtt-datasource
+    # ===================
 
   grafana.ini:
     server:
@@ -1342,19 +1378,49 @@ grafana:
 
   # # To make Grafana persistent (Using Statefulset)
   # #
-  # persistence:
-  #   enabled: true
-  #   type: sts
-  #   storageClassName: "storageClassName"
-  #   accessModes:
-  #     - ReadWriteOnce
-  #   size: 20Gi
-  #   finalizers:
-  #     - kubernetes.io/pvc-protection
+  persistence:
+    enabled: true
+    type: sts
+    storageClassName: "nfs-client"
+    accessModes:
+    - ReadWriteOnce
+    size: 20Gi
+    finalizers:
+      - kubernetes.io/pvc-protection
 
   serviceAccount:
     create: true
     autoMount: true
+
+  ## Resource limits & requests for Grafana
+  ## Recommended for production environments
+  resources:
+    requests:
+      memory: 256Mi
+      cpu: 100m
+    limits:
+      memory: 512Mi
+      cpu: 500m
+
+  ## Probe settings - increased delays for slow plugin downloads over NFS/slow networks
+  ## Plugins are downloaded at startup and can take several minutes
+  readinessProbe:
+    httpGet:
+      path: /api/health
+      port: 3000
+    initialDelaySeconds: 120    # Wait 2 min before first check
+    timeoutSeconds: 30
+    periodSeconds: 10
+    failureThreshold: 30        # Allow 5 min of failures (30 * 10s)
+
+  livenessProbe:
+    httpGet:
+      path: /api/health
+      port: 3000
+    initialDelaySeconds: 180    # Wait 3 min before first check
+    timeoutSeconds: 30
+    periodSeconds: 10
+    failureThreshold: 30        # Allow 5 min of failures
 
   sidecar:
     dashboards:
@@ -1362,7 +1428,11 @@ grafana:
       label: grafana_dashboard
       labelValue: "1"
       # Allow discovery in all namespaces for dashboards
-      searchNamespace: ALL
+      searchNamespace: monitoring
+
+      # Enable folder annotation to organize dashboards into Grafana folders
+      # Dashboards with annotation "grafana_folder: FolderName" will be placed in that folder
+      folderAnnotation: grafana_folder
 
       # Support for new table panels, when enabled grafana auto migrates the old table panels to newer table panels
       enableNewTablePanelSyntax: false
@@ -4054,8 +4124,8 @@ prometheus:
 
     # Added External URL and Route Prefix
 
-    routePrefix: "/prometheus"
-    externalUrl: "http://champ.com/prometheus"
+    # routePrefix: "/prometheus"
+    # externalUrl: "http://champ.com/prometheus"
     
     ## Define which Nodes the Pods are scheduled on.
     ## ref: https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#nodeselector
@@ -4206,11 +4276,11 @@ prometheus:
 
     ## How long to retain metrics
     ##
-    retention: 10d
+    retention: 15d
 
-    ## Maximum size of metrics
-    ##
-    retentionSize: ""
+    ## Maximum size of metrics - stop before filling disk
+    ## Set based on your storage capacity
+    retentionSize: "45GB"
 
     ## Allow out-of-order/out-of-bounds samples ingested into Prometheus for a specified duration
     ## See https://prometheus.io/docs/prometheus/latest/configuration/configuration/#tsdb
@@ -4302,11 +4372,15 @@ prometheus:
     ## Enable/Disable Grafana dashboards provisioning for prometheus remote write feature
     remoteWriteDashboards: false
 
-    ## Resource limits & requests
-    ##
-    resources: {}
-    # requests:
-    #   memory: 400Mi
+    ## Resource limits & requests for Prometheus
+    ## Recommended for production environments
+    resources:
+      requests:
+        memory: 2Gi
+        cpu: 500m
+      limits:
+        memory: 4Gi
+        cpu: 2000m
 
     ## Prometheus StorageSpec for persistent data
     ## ref: https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/platform/storage.md
@@ -4346,7 +4420,12 @@ prometheus:
     ## The scrape configuration example below will find master nodes, provided they have the name .*mst.*, relabel the
     ## port to 2379 and allow etcd scraping provided it is running on all Kubernetes master nodes
     ##
-    additionalScrapeConfigs: []
+    additionalScrapeConfigs:
+      - job_name: "otel-gateway"
+        scrape_interval: 15s
+        static_configs:
+          - targets:
+              - otel-gateway.monitoring.svc.cluster.local:9464
     # - job_name: kube-etcd
     #   kubernetes_sd_configs:
     #     - role: node

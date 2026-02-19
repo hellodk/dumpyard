@@ -1,0 +1,204 @@
+grafana:
+  dashboards:
+    hellodk:
+
+#      # -------------------
+#      # HAProxy Dashboards
+#      # -------------------
+#      haproxy-overview:
+#        gnetId: 12030
+#        revision: 1
+#        datasource: Prometheus#
+
+#      haproxy-2-full:
+#        gnetId: 16675
+#        revision: 1
+#        datasource: Prometheus#
+
+#      haproxy-backend-servers:
+#        gnetId: 367
+#        revision: 1
+#        datasource: Prometheus#
+
+#      haproxy-frontend:
+#        gnetId: 361
+#        revision: 1
+#        datasource: Prometheus#
+
+#      haproxy-ingress-controller:
+#        gnetId: 12056
+#        revision: 1
+#        datasource: Prometheus#
+
+#      haproxy-instance-summary:
+#        gnetId: 12865
+#        revision: 1
+#        datasource: Prometheus#
+#
+
+#      # -------------------
+#      # Kubernetes / AWS
+#      # -------------------
+#      eks-kubernetes-overview:
+#        gnetId: 17119
+#        revision: 1
+#        datasource: Prometheus#
+
+#      aws-alb:
+#        gnetId: 14361
+#        revision: 1
+#        datasource: Prometheus#
+
+#      aws-nlb:
+#        gnetId: 12111
+#        revision: 1
+#        datasource: Prometheus#
+
+#      aws-elb-targetgroup:
+#        gnetId: 16071
+#        revision: 1
+#        datasource: Prometheus#
+#
+
+#      # -------------------
+#      # JVM / Spring
+#      # -------------------
+#      jvm-prometheus:
+#        gnetId: 14359
+#        revision: 1
+#        datasource: Prometheus#
+
+#      jvm-micrometer:
+#        gnetId: 4701
+#        revision: 1
+#        datasource: Prometheus#
+
+#      springboot3-jvm:
+#        gnetId: 22108
+#        revision: 1
+#        datasource: Prometheus#
+#
+
+#      # -------------------
+#      # NGINX
+#      # -------------------
+#      nginx:
+#        gnetId: 8531
+#        revision: 1
+#        datasource: Prometheus#
+
+#      nginx-ingress-k8s:
+#        gnetId: 12575
+#        revision: 1
+#        datasource: Prometheus
+
+
+      # -------------------
+      # Prometheus
+      # -------------------
+      prometheus-server:
+        gnetId: 19268
+        revision: 1
+        datasource: Prometheus
+
+
+      # -------------------
+      # Popular K8s Dashboards
+      # -------------------
+      k8s-cluster-advanced:
+        gnetId: 11802
+        revision: 1
+        datasource: Prometheus
+
+      k8s-nodes:
+        gnetId: 1860
+        revision: 37
+        datasource: Prometheus
+
+      k8s-cluster-summary:
+        gnetId: 7249
+        revision: 1
+        datasource: Prometheus
+
+      k8s-pods:
+        gnetId: 6417
+        revision: 1
+        datasource: Prometheus
+
+#      nginx-plus:
+#        gnetId: 9614
+#        revision: 1
+#        datasource: Prometheus
+
+#      haproxy-official:
+#        gnetId: 12693
+#        revision: 1
+#        datasource: Prometheus
+
+
+      # -------------------
+      # Misc Infra
+      # -------------------
+      node-exporter-full:
+        gnetId: 1860
+        revision: 37
+        datasource: Prometheus
+
+      cadvisor:
+        gnetId: 14282
+        revision: 1
+        datasource: Prometheus
+
+      kubernetes-capacity:
+        gnetId: 10557
+        revision: 1
+        datasource: Prometheus
+
+      kube-state-metrics:
+        gnetId: 13332
+        revision: 1
+        datasource: Prometheus
+
+
+      # -------------------
+      # K8s Addons / System
+      # -------------------
+      k8s-addons-prometheus:
+        gnetId: 19105
+        revision: 1
+        datasource: Prometheus
+
+      k8s-addons-trivy-operator:
+        gnetId: 16337
+        revision: 1
+        datasource: Prometheus
+
+      k8s-system-api-server:
+        gnetId: 15761
+        revision: 1
+        datasource: Prometheus
+
+      k8s-system-coredns:
+        gnetId: 15762
+        revision: 1
+        datasource: Prometheus
+
+      k8s-views-global:
+        gnetId: 15757
+        revision: 1
+        datasource: Prometheus
+
+      k8s-views-namespaces:
+        gnetId: 15758
+        revision: 1
+        datasource: Prometheus
+
+      k8s-views-nodes:
+        gnetId: 15759
+        revision: 1
+        datasource: Prometheus
+
+      k8s-views-pods:
+        gnetId: 15760
+        revision: 1
+        datasource: Prometheus
