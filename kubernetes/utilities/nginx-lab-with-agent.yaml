@@ -149,7 +149,7 @@ spec:
       # NGINX CONTAINER
       # ======================
       - name: nginx
-        image: docker.io/hellodk/avika-agent:${IMAGE_TAG}
+        image: docker.io/hellodk/avika-agent:latest
         env:
         - name: TZ
           value: Asia/Kolkata

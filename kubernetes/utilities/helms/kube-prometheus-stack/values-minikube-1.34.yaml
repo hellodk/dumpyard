@@ -1222,42 +1222,147 @@ grafana:
   initChownData:
     enabled: false
 
-  ## Plugins are already installed on the PVC (/var/lib/grafana/plugins)
-  ## Leaving this empty prevents re-download attempts on every restart
-  ## To install new plugins: uncomment, deploy, then comment out again
+  ## Plugins - leave empty to use init container for offline installation
+  ## The init container below handles plugin installation from grafana.com
+  ## with smart caching (only downloads if not already present on PVC)
   plugins: []
-    # ===================
-    # Installed Plugins (on PVC, no download needed):
-    # - digrich-bubblechart-panel
-    # - grafana-clock-panel
-    # - btplc-status-dot-panel
-    # - grafana-polystat-panel
-    # - grafana-piechart-panel
-    # - marcusolsson-json-datasource
-    # - yesoreyeram-infinity-datasource
-    # - grafana-clickhouse-datasource
-    # - grafana-opensearch-datasource
-    # - redis-datasource
-    # ===================
-    # Built-in Datasources (Grafana 9+, no plugin needed):
-    # - Loki, Tempo, Jaeger, Zipkin, OpenTelemetry
-    # ===================
-    # Optional Plugins (uncomment to install):
-    # - grafana-googlesheets-datasource
-    # - grafana-github-datasource
-    # - grafana-oncall-app
-    # - grafana-sentry-datasource
-    # - camptocamp-prometheus-alertmanager-datasource
-    # - jdbranham-diagram-panel
-    # - grafana-synthetic-monitoring-app
-    # - grafana-mqtt-datasource
-    # ===================
+
+  ## Init container for offline/reliable plugin installation
+  ## Downloads plugins only if they don't exist on the PVC
+  ## This avoids repeated download attempts on every restart
+  extraInitContainers:
+    - name: install-plugins
+      image: curlimages/curl:8.5.0
+      imagePullPolicy: IfNotPresent
+      command: ["sh", "-c"]
+      args:
+        - |
+          set -e
+          PLUGIN_DIR="/var/lib/grafana/plugins"
+          GRAFANA_API="https://grafana.com/api/plugins"
+          
+          # List of plugins to install (plugin-id:folder-name)
+          PLUGINS="
+            digrich-bubblechart-panel
+            grafana-clock-panel
+            btplc-status-dot-panel
+            grafana-polystat-panel
+            grafana-piechart-panel
+            marcusolsson-json-datasource
+            yesoreyeram-infinity-datasource
+            grafana-clickhouse-datasource
+            grafana-opensearch-datasource
+            redis-datasource
+          "
+          
+          echo "=== Grafana Plugin Installer ==="
+          echo "Plugin directory: ${PLUGIN_DIR}"
+          mkdir -p "${PLUGIN_DIR}"
+          
+          install_count=0
+          skip_count=0
+          fail_count=0
+          
+          for plugin in ${PLUGINS}; do
+            plugin_name=$(echo "$plugin" | tr -d ' ')
+            [ -z "$plugin_name" ] && continue
+            
+            # Check if plugin already exists
+            if [ -d "${PLUGIN_DIR}/${plugin_name}" ]; then
+              echo "[SKIP] ${plugin_name} - already installed"
+              skip_count=$((skip_count + 1))
+              continue
+            fi
+            
+            echo "[DOWNLOAD] ${plugin_name}..."
+            
+            # Get download URL from Grafana API
+            download_path=$(curl -sS "${GRAFANA_API}/${plugin_name}" 2>/dev/null | \
+              grep -o '"downloadUrl":"[^"]*"' | head -1 | cut -d'"' -f4)
+            
+            if [ -z "$download_path" ]; then
+              echo "  ERROR: Could not get download URL"
+              fail_count=$((fail_count + 1))
+              continue
+            fi
+            
+            download_url="https://grafana.com${download_path}"
+            
+            # Download and extract
+            if curl -sS -L "${download_url}" -o "/tmp/${plugin_name}.zip" 2>/dev/null; then
+              if unzip -q -o "/tmp/${plugin_name}.zip" -d "${PLUGIN_DIR}/" 2>/dev/null; then
+                rm -f "/tmp/${plugin_name}.zip"
+                echo "  OK: Installed ${plugin_name}"
+                install_count=$((install_count + 1))
+              else
+                echo "  ERROR: Failed to extract ${plugin_name}"
+                fail_count=$((fail_count + 1))
+              fi
+            else
+              echo "  ERROR: Failed to download ${plugin_name}"
+              fail_count=$((fail_count + 1))
+            fi
+            
+            # Small delay between downloads
+            sleep 1
+          done
+          
+          echo ""
+          echo "=== Summary ==="
+          echo "Installed: ${install_count}"
+          echo "Skipped (existing): ${skip_count}"
+          echo "Failed: ${fail_count}"
+          echo ""
+          
+          # List installed plugins
+          echo "Installed plugins:"
+          ls -la "${PLUGIN_DIR}/" 2>/dev/null || echo "  (none)"
+          
+          # Don't fail if some plugins couldn't download - Grafana will still start
+          # with existing plugins on the PVC
+          exit 0
+      volumeMounts:
+        - name: storage
+          mountPath: /var/lib/grafana
+      resources:
+        requests:
+          memory: 64Mi
+          cpu: 50m
+        limits:
+          memory: 128Mi
+          cpu: 200m
+
+  # ===================
+  # Plugin Reference:
+  # Installed via init container:
+  # - digrich-bubblechart-panel     # Bubble chart visualization
+  # - grafana-clock-panel           # Clock/countdown panel
+  # - btplc-status-dot-panel        # Status indicator dots
+  # - grafana-polystat-panel        # Hexagonal/status grid
+  # - grafana-piechart-panel        # Pie chart
+  # - marcusolsson-json-datasource  # JSON API datasource
+  # - yesoreyeram-infinity-datasource # Universal datasource (CSV, JSON, GraphQL)
+  # - grafana-clickhouse-datasource # ClickHouse DB
+  # - grafana-opensearch-datasource # OpenSearch/Elasticsearch
+  # - redis-datasource              # Redis DB
+  # ===================
+  # Built-in Datasources (Grafana 9+, no plugin needed):
+  # - Loki, Tempo, Jaeger, Zipkin, OpenTelemetry
+  # ===================
+  # To add more plugins: edit the PLUGINS list in extraInitContainers above
+  # ===================
 
   grafana.ini:
     server:
       domain: "champ.com"
       root_url: "%(protocol)s://%(domain)s"
       serve_from_sub_path: true
+    plugins:
+      # Allow loading of unsigned plugins (some community plugins may be unsigned)
+      # Comma-separated list of plugin IDs to allow
+      allow_loading_unsigned_plugins: "yesoreyeram-infinity-datasource,marcusolsson-json-datasource"
+      # Plugin catalog URL (for air-gapped environments, can point to internal mirror)
+      # plugin_catalog_url: https://grafana.com/grafana/plugins/
 
   ## ForceDeployDatasources Create datasource configmap even if grafana deployment has been disabled
   ##
@@ -1427,12 +1532,19 @@ grafana:
       enabled: true
       label: grafana_dashboard
       labelValue: "1"
-      # Allow discovery in all namespaces for dashboards
-      searchNamespace: monitoring
-
+      
+      # Watch ALL namespaces for dashboard ConfigMaps
+      # This allows apps in different namespaces to deploy their own dashboards
+      # Set to "ALL" to watch all namespaces, or specific namespace name, or null for Grafana's namespace only
+      searchNamespace: ALL
+      
       # Enable folder annotation to organize dashboards into Grafana folders
-      # Dashboards with annotation "grafana_folder: FolderName" will be placed in that folder
+      # Apps can set annotation "grafana_folder: MyApp" to organize their dashboards
       folderAnnotation: grafana_folder
+      
+      # How sidecar identifies dashboard ConfigMaps:
+      # 1. Label: grafana_dashboard=1 (REQUIRED - identifies ConfigMap as a dashboard)
+      # 2. Annotation: grafana_folder=FolderName (OPTIONAL - organizes into folders)
 
       # Support for new table panels, when enabled grafana auto migrates the old table panels to newer table panels
       enableNewTablePanelSyntax: false
