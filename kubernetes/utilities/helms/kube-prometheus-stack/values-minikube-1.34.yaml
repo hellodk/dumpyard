@@ -1542,6 +1542,10 @@ grafana:
       # Apps can set annotation "grafana_folder: MyApp" to organize their dashboards
       folderAnnotation: grafana_folder
       
+      # Use directory structure for folder names (for Helm chart's own dashboards)
+      # e.g., dashboards-hellodk/infrastructure/*.yaml → "infrastructure" folder
+      foldersFromFilesStructure: true
+      
       # How sidecar identifies dashboard ConfigMaps:
       # 1. Label: grafana_dashboard=1 (REQUIRED - identifies ConfigMap as a dashboard)
       # 2. Annotation: grafana_folder=FolderName (OPTIONAL - organizes into folders)
@@ -1563,6 +1567,14 @@ grafana:
       enabled: true
       defaultDatasourceEnabled: true
       isDefaultDatasource: true
+      
+      # Watch ALL namespaces for datasource ConfigMaps
+      # Apps can deploy their own datasources (e.g., ClickHouse, custom DBs) in their namespace
+      searchNamespace: ALL
+      
+      # Label to identify datasource ConfigMaps
+      label: grafana_datasource
+      labelValue: "1"
 
       name: Prometheus
       uid: prometheus
@@ -1585,14 +1597,8 @@ grafana:
       httpMethod: POST
 
       ## Create datasource for each Pod of Prometheus StatefulSet;
-      ## this uses by default the headless service `prometheus-operated` which is
-      ## created by Prometheus Operator. In case you deployed your own Service for your
-      ## Prometheus instance, you can specifiy it with the field `prometheusServiceName`
-      ## ref: https://github.com/prometheus-operator/prometheus-operator/blob/0fee93e12dc7c2ea1218f19ae25ec6b893460590/pkg/prometheus/statefulset.go#L255-L286
       createPrometheusReplicasDatasources: false
       prometheusServiceName: prometheus-operated
-      label: grafana_datasource
-      labelValue: "1"
 
       ## Field with internal link pointing to existing data source in Grafana.
       ## Can be provisioned via additionalDataSources
