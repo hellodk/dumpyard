@@ -1,0 +1,175 @@
+# Example: How applications deploy their own Grafana dashboards
+#
+# Applications can deploy this ConfigMap in their OWN namespace.
+# Grafana's sidecar will automatically discover and load it.
+#
+# REQUIREMENTS:
+# 1. Label: grafana_dashboard: "1" (REQUIRED - tells sidecar this is a dashboard)
+# 2. Annotation: grafana_folder: "MyApp" (OPTIONAL - organizes dashboard into a folder)
+#
+# Deploy with: kubectl apply -f app-dashboard-configmap.yaml -n <your-app-namespace>
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: myapp-grafana-dashboard
+  namespace: myapp-namespace  # Your application's namespace
+  labels:
+    # REQUIRED: This label identifies the ConfigMap as a Grafana dashboard
+    grafana_dashboard: "1"
+  annotations:
+    # OPTIONAL: Organize dashboard into a folder (creates folder if doesn't exist)
+    grafana_folder: "MyApp"
+data:
+  myapp-dashboard.json: |
+    {
+      "annotations": {
+        "list": []
+      },
+      "editable": true,
+      "fiscalYearStartMonth": 0,
+      "graphTooltip": 0,
+      "links": [],
+      "panels": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "color": { "mode": "palette-classic" },
+              "custom": {
+                "axisBorderShow": false,
+                "axisCenteredZero": false,
+                "axisColorMode": "text",
+                "axisLabel": "",
+                "axisPlacement": "auto",
+                "barAlignment": 0,
+                "drawStyle": "line",
+                "fillOpacity": 10,
+                "gradientMode": "none",
+                "hideFrom": { "legend": false, "tooltip": false, "viz": false },
+                "insertNulls": false,
+                "lineInterpolation": "linear",
+                "lineWidth": 1,
+                "pointSize": 5,
+                "scaleDistribution": { "type": "linear" },
+                "showPoints": "never",
+                "spanNulls": false,
+                "stacking": { "group": "A", "mode": "none" },
+                "thresholdsStyle": { "mode": "off" }
+              },
+              "mappings": [],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [{ "color": "green", "value": null }]
+              },
+              "unit": "short"
+            },
+            "overrides": []
+          },
+          "gridPos": { "h": 8, "w": 12, "x": 0, "y": 0 },
+          "id": 1,
+          "options": {
+            "legend": { "calcs": [], "displayMode": "list", "placement": "bottom", "showLegend": true },
+            "tooltip": { "mode": "single", "sort": "none" }
+          },
+          "targets": [
+            {
+              "datasource": { "type": "prometheus", "uid": "prometheus" },
+              "expr": "sum(rate(container_cpu_usage_seconds_total{namespace=\"myapp-namespace\",container!=\"\",container!=\"POD\"}[5m])) by (pod)",
+              "legendFormat": "{{pod}}",
+              "refId": "A"
+            }
+          ],
+          "title": "MyApp CPU Usage",
+          "type": "timeseries"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "color": { "mode": "palette-classic" },
+              "custom": {
+                "axisBorderShow": false,
+                "axisCenteredZero": false,
+                "axisColorMode": "text",
+                "axisLabel": "",
+                "axisPlacement": "auto",
+                "barAlignment": 0,
+                "drawStyle": "line",
+                "fillOpacity": 10,
+                "gradientMode": "none",
+                "hideFrom": { "legend": false, "tooltip": false, "viz": false },
+                "insertNulls": false,
+                "lineInterpolation": "linear",
+                "lineWidth": 1,
+                "pointSize": 5,
+                "scaleDistribution": { "type": "linear" },
+                "showPoints": "never",
+                "spanNulls": false,
+                "stacking": { "group": "A", "mode": "none" },
+                "thresholdsStyle": { "mode": "off" }
+              },
+              "mappings": [],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [{ "color": "green", "value": null }]
+              },
+              "unit": "bytes"
+            },
+            "overrides": []
+          },
+          "gridPos": { "h": 8, "w": 12, "x": 12, "y": 0 },
+          "id": 2,
+          "options": {
+            "legend": { "calcs": [], "displayMode": "list", "placement": "bottom", "showLegend": true },
+            "tooltip": { "mode": "single", "sort": "none" }
+          },
+          "targets": [
+            {
+              "datasource": { "type": "prometheus", "uid": "prometheus" },
+              "expr": "sum(container_memory_working_set_bytes{namespace=\"myapp-namespace\",container!=\"\",container!=\"POD\"}) by (pod)",
+              "legendFormat": "{{pod}}",
+              "refId": "A"
+            }
+          ],
+          "title": "MyApp Memory Usage",
+          "type": "timeseries"
+        }
+      ],
+      "schemaVersion": 39,
+      "tags": ["myapp", "application"],
+      "templating": { "list": [] },
+      "time": { "from": "now-1h", "to": "now" },
+      "timepicker": {},
+      "timezone": "browser",
+      "title": "MyApp Dashboard",
+      "uid": "myapp-dashboard",
+      "version": 1
+    }
+
+---
+# Helm template example for applications using Helm charts
+# Add this to your app's Helm chart templates/grafana-dashboard.yaml
+#
+# {{- if .Values.grafana.dashboard.enabled }}
+# apiVersion: v1
+# kind: ConfigMap
+# metadata:
+#   name: {{ include "myapp.fullname" . }}-grafana-dashboard
+#   namespace: {{ .Release.Namespace }}
+#   labels:
+#     grafana_dashboard: "1"
+#     {{- include "myapp.labels" . | nindent 4 }}
+#   annotations:
+#     grafana_folder: {{ .Values.grafana.dashboard.folder | default "Applications" | quote }}
+# data:
+#   {{ include "myapp.fullname" . }}.json: |
+#     {{ .Files.Get "dashboards/myapp.json" | nindent 4 }}
+# {{- end }}

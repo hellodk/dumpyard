@@ -1,0 +1,1142 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-dashboard-22174-kubernetes-autoscaling-cluster-autoscaler
+  namespace: monitoring
+  labels:
+    grafana_dashboard: "1"
+data:
+  22174-kubernetes-autoscaling-cluster-autoscaler.json: |
+    {
+      "__inputs": [],
+      "__requires": [],
+      "annotations": {
+        "list": []
+      },
+      "description": "A dashboard that monitors the Cluster Autoscaler. The dashboards were generated using [kubernetes-autoscaling-mixin](https://github.com/adinhodovic/kubernetes-autoscaling-mixin). Open issues and create feature requests in the repository.",
+      "editable": true,
+      "links": [
+        {
+          "asDropdown": true,
+          "includeVars": false,
+          "keepTime": true,
+          "tags": [
+            "kubernetes",
+            "autoscaling",
+            "kubernetes-autoscaling-mixin"
+          ],
+          "targetBlank": true,
+          "title": "Kubernetes / Autoscaling",
+          "type": "dashboards"
+        }
+      ],
+      "panels": [
+        {
+          "collapsed": false,
+          "gridPos": {
+            "h": 1,
+            "w": 24,
+            "x": 0,
+            "y": 0
+          },
+          "id": 1,
+          "title": "Summary",
+          "type": "row"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "$datasource"
+          },
+          "description": "The total number of nodes in the cluster.",
+          "fieldConfig": {
+            "defaults": {
+              "mappings": [],
+              "thresholds": {
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": 0
+                  }
+                ]
+              },
+              "unit": "short"
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 4,
+            "w": 3,
+            "x": 0,
+            "y": 1
+          },
+          "id": 2,
+          "options": {
+            "graphMode": "area",
+            "percentChangeColorMode": "standard",
+            "showPercentChange": false
+          },
+          "pluginVersion": "v11.4.0",
+          "targets": [
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "$datasource"
+              },
+              "expr": "round(\n  sum(\n    cluster_autoscaler_nodes_count{\n      cluster=\"$cluster\",\njob=~\"$job\"\n\n    }\n  )\n)\n",
+              "instant": false
+            }
+          ],
+          "title": "Total Nodes",
+          "type": "stat"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "$datasource"
+          },
+          "description": "The maximum number of nodes allowed in the cluster.",
+          "fieldConfig": {
+            "defaults": {
+              "mappings": [],
+              "thresholds": {
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": 0
+                  }
+                ]
+              },
+              "unit": "short"
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 4,
+            "w": 3,
+            "x": 3,
+            "y": 1
+          },
+          "id": 3,
+          "options": {
+            "graphMode": "area",
+            "percentChangeColorMode": "standard",
+            "showPercentChange": false
+          },
+          "pluginVersion": "v11.4.0",
+          "targets": [
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "$datasource"
+              },
+              "expr": "round(\n  sum(\n    cluster_autoscaler_max_nodes_count{\n      cluster=\"$cluster\",\njob=~\"$job\"\n\n    }\n  )\n)\n",
+              "instant": false
+            }
+          ],
+          "title": "Max Nodes",
+          "type": "stat"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "$datasource"
+          },
+          "description": "The number of node groups in the cluster.",
+          "fieldConfig": {
+            "defaults": {
+              "mappings": [],
+              "thresholds": {
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": 0
+                  }
+                ]
+              },
+              "unit": "short"
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 4,
+            "w": 3,
+            "x": 6,
+            "y": 1
+          },
+          "id": 4,
+          "options": {
+            "graphMode": "area",
+            "percentChangeColorMode": "standard",
+            "showPercentChange": false
+          },
+          "pluginVersion": "v11.4.0",
+          "targets": [
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "$datasource"
+              },
+              "expr": "round(\n  sum(\n    cluster_autoscaler_node_groups_count{\n      cluster=\"$cluster\",\njob=~\"$job\"\n\n    }\n  )\n)\n",
+              "instant": false
+            }
+          ],
+          "title": "Node Groups",
+          "type": "stat"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "$datasource"
+          },
+          "description": "The percentage of healthy nodes in the cluster.",
+          "fieldConfig": {
+            "defaults": {
+              "max": 100,
+              "min": 0,
+              "thresholds": {
+                "steps": [
+                  {
+                    "color": "red",
+                    "value": 0
+                  },
+                  {
+                    "color": "yellow",
+                    "value": 50
+                  },
+                  {
+                    "color": "green",
+                    "value": 80
+                  }
+                ]
+              },
+              "unit": "percent"
+            }
+          },
+          "gridPos": {
+            "h": 4,
+            "w": 3,
+            "x": 9,
+            "y": 1
+          },
+          "id": 5,
+          "pluginVersion": "v11.4.0",
+          "targets": [
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "$datasource"
+              },
+              "expr": "round(\n  sum(\n    cluster_autoscaler_nodes_count{\n      cluster=\"$cluster\",\njob=~\"$job\"\n,\n      state=\"ready\"\n    }\n  ) /\n  sum(\n    cluster_autoscaler_nodes_count{\n      cluster=\"$cluster\",\njob=~\"$job\"\n\n    }\n  ) * 100\n)\n"
+            }
+          ],
+          "title": "Healthy Nodes",
+          "type": "gauge"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "$datasource"
+          },
+          "description": "Indicates whether it is safe to scale the cluster.",
+          "fieldConfig": {
+            "defaults": {
+              "mappings": [
+                {
+                  "options": {
+                    "0": {
+                      "color": "red",
+                      "text": "No"
+                    },
+                    "1": {
+                      "color": "green",
+                      "text": "Yes"
+                    }
+                  },
+                  "type": "value"
+                }
+              ],
+              "thresholds": {
+                "steps": [
+                  {
+                    "color": "red",
+                    "value": 0
+                  },
+                  {
+                    "color": "green",
+                    "value": 0.1
+                  }
+                ]
+              },
+              "unit": "short"
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 4,
+            "w": 3,
+            "x": 12,
+            "y": 1
+          },
+          "id": 6,
+          "options": {
+            "graphMode": "area",
+            "percentChangeColorMode": "standard",
+            "showPercentChange": false
+          },
+          "pluginVersion": "v11.4.0",
+          "targets": [
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "$datasource"
+              },
+              "expr": "sum(\n  cluster_autoscaler_cluster_safe_to_autoscale{\n    cluster=\"$cluster\",\njob=~\"$job\"\n\n  }\n)\n",
+              "instant": false
+            }
+          ],
+          "title": "Safe to Scale",
+          "type": "stat"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "$datasource"
+          },
+          "description": "The number of unscheduled pods in the cluster.",
+          "fieldConfig": {
+            "defaults": {
+              "mappings": [],
+              "thresholds": {
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": 0
+                  }
+                ]
+              },
+              "unit": "short"
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 4,
+            "w": 3,
+            "x": 15,
+            "y": 1
+          },
+          "id": 7,
+          "options": {
+            "graphMode": "area",
+            "percentChangeColorMode": "standard",
+            "showPercentChange": false
+          },
+          "pluginVersion": "v11.4.0",
+          "targets": [
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "$datasource"
+              },
+              "expr": "round(\n  sum(\n    cluster_autoscaler_unschedulable_pods_count{\n      cluster=\"$cluster\",\njob=~\"$job\"\n\n    }\n  )\n)\n",
+              "instant": false
+            }
+          ],
+          "title": "Unscheduled Pods",
+          "type": "stat"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "$datasource"
+          },
+          "description": "The timestamp of the last scale down activity.",
+          "fieldConfig": {
+            "defaults": {
+              "mappings": [],
+              "thresholds": {
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": 0
+                  }
+                ]
+              },
+              "unit": "s"
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 4,
+            "w": 3,
+            "x": 18,
+            "y": 1
+          },
+          "id": 8,
+          "options": {
+            "graphMode": "area",
+            "percentChangeColorMode": "standard",
+            "showPercentChange": false
+          },
+          "pluginVersion": "v11.4.0",
+          "targets": [
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "$datasource"
+              },
+              "expr": "time() - max(\n  cluster_autoscaler_last_activity{\n    cluster=\"$cluster\",\njob=~\"$job\"\n,\n    activity=\"scaleDown\"\n  }\n)\n",
+              "instant": false
+            }
+          ],
+          "title": "Last Scale Down",
+          "type": "stat"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "$datasource"
+          },
+          "description": "The timestamp of the last scale up activity.",
+          "fieldConfig": {
+            "defaults": {
+              "mappings": [],
+              "thresholds": {
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": 0
+                  }
+                ]
+              },
+              "unit": "s"
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 4,
+            "w": 3,
+            "x": 21,
+            "y": 1
+          },
+          "id": 9,
+          "options": {
+            "graphMode": "area",
+            "percentChangeColorMode": "standard",
+            "showPercentChange": false
+          },
+          "pluginVersion": "v11.4.0",
+          "targets": [
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "$datasource"
+              },
+              "expr": "time() - max(\n  cluster_autoscaler_last_activity{\n    cluster=\"$cluster\",\njob=~\"$job\"\n,\n    activity=\"scaleUp\"\n  }\n)\n",
+              "instant": false
+            }
+          ],
+          "title": "Last Scale Up",
+          "type": "stat"
+        },
+        {
+          "collapsed": false,
+          "gridPos": {
+            "h": 1,
+            "w": 24,
+            "x": 0,
+            "y": 5
+          },
+          "id": 10,
+          "title": "Activity",
+          "type": "row"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "$datasource"
+          },
+          "description": "The activity of pods in the cluster.",
+          "fieldConfig": {
+            "defaults": {
+              "custom": {
+                "axisSoftMin": 0,
+                "fillOpacity": 100,
+                "lineWidth": 1,
+                "stacking": {
+                  "mode": "normal"
+                }
+              },
+              "unit": "short"
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 0,
+            "y": 6
+          },
+          "id": 11,
+          "options": {
+            "legend": {
+              "calcs": [
+                "mean",
+                "max"
+              ],
+              "displayMode": "table",
+              "placement": "right",
+              "showLegend": true,
+              "sortBy": "Mean",
+              "sortDesc": true
+            },
+            "tooltip": {
+              "mode": "multi",
+              "sort": "desc"
+            }
+          },
+          "pluginVersion": "v11.4.0",
+          "targets": [
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "$datasource"
+              },
+              "exemplar": false,
+              "expr": "round(\n  sum(\n    increase(\n      cluster_autoscaler_unschedulable_pods_count{\n        cluster=\"$cluster\",\njob=~\"$job\"\n\n      }[$__rate_interval]\n    )\n  ) by (type)\n)\n",
+              "legendFormat": "{{ type }}"
+            },
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "$datasource"
+              },
+              "exemplar": false,
+              "expr": "round(\n  sum(\n    increase(\n      cluster_autoscaler_evicted_pods_total{\n        cluster=\"$cluster\",\njob=~\"$job\"\n\n      }[$__rate_interval]\n    )\n  ) by (eviction_result)\n)\n",
+              "legendFormat": "Evicted / {{ eviction_result }}"
+            }
+          ],
+          "title": "Pod Activity",
+          "type": "timeseries"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "$datasource"
+          },
+          "description": "The activity of nodes in the cluster.",
+          "fieldConfig": {
+            "defaults": {
+              "custom": {
+                "axisSoftMin": 0,
+                "fillOpacity": 100,
+                "lineWidth": 1,
+                "stacking": {
+                  "mode": "normal"
+                }
+              },
+              "unit": "short"
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 12,
+            "y": 6
+          },
+          "id": 12,
+          "options": {
+            "legend": {
+              "calcs": [
+                "mean",
+                "max"
+              ],
+              "displayMode": "table",
+              "placement": "right",
+              "showLegend": true,
+              "sortBy": "Mean",
+              "sortDesc": true
+            },
+            "tooltip": {
+              "mode": "multi",
+              "sort": "desc"
+            }
+          },
+          "pluginVersion": "v11.4.0",
+          "targets": [
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "$datasource"
+              },
+              "exemplar": false,
+              "expr": "round(\n  sum(\n    cluster_autoscaler_nodes_count{\n      cluster=\"$cluster\",\njob=~\"$job\"\n\n    }\n  ) by (state)\n)\n",
+              "legendFormat": "{{ state }}"
+            }
+          ],
+          "title": "Node Activity",
+          "type": "timeseries"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "$datasource"
+          },
+          "description": "The autoscaling activity in the cluster.",
+          "fieldConfig": {
+            "defaults": {
+              "custom": {
+                "fillOpacity": 0
+              },
+              "unit": "short"
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 8,
+            "w": 24,
+            "x": 0,
+            "y": 14
+          },
+          "id": 13,
+          "options": {
+            "legend": {
+              "calcs": [
+                "mean",
+                "max"
+              ],
+              "displayMode": "table",
+              "placement": "right",
+              "showLegend": true,
+              "sortBy": "Mean",
+              "sortDesc": true
+            },
+            "tooltip": {
+              "mode": "multi",
+              "sort": "desc"
+            }
+          },
+          "pluginVersion": "v11.4.0",
+          "targets": [
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "$datasource"
+              },
+              "exemplar": false,
+              "expr": "round(\n  sum(\n    cluster_autoscaler_nodes_count{\n      cluster=\"$cluster\",\njob=~\"$job\"\n\n    }\n  )\n)\n",
+              "legendFormat": "Total Nodes"
+            },
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "$datasource"
+              },
+              "exemplar": false,
+              "expr": "round(\n  sum(\n    cluster_autoscaler_unneeded_nodes_count{\n      cluster=\"$cluster\",\njob=~\"$job\"\n\n    }\n  )\n)\n",
+              "legendFormat": "Unneeded"
+            },
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "$datasource"
+              },
+              "exemplar": false,
+              "expr": "round(\n  sum(\n    increase(\n      cluster_autoscaler_scaled_up_nodes_total{\n        cluster=\"$cluster\",\njob=~\"$job\"\n\n      }[$__rate_interval]\n    )\n  )\n)\n",
+              "legendFormat": "Scaled Up"
+            },
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "$datasource"
+              },
+              "exemplar": false,
+              "expr": "round(\n  sum(\n    increase(\n      cluster_autoscaler_scaled_down_nodes_total{\n        cluster=\"$cluster\",\njob=~\"$job\"\n\n      }[$__rate_interval]\n    )\n  )\n)\n",
+              "legendFormat": "Scaled Down"
+            }
+          ],
+          "title": "Autoscaling Activity",
+          "type": "timeseries"
+        },
+        {
+          "collapsed": false,
+          "gridPos": {
+            "h": 1,
+            "w": 24,
+            "x": 0,
+            "y": 22
+          },
+          "id": 14,
+          "title": "Node Group Overview",
+          "type": "row"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "$datasource"
+          },
+          "description": "The total number of node groups in the cluster.",
+          "fieldConfig": {
+            "defaults": {
+              "mappings": [],
+              "thresholds": {
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": 0
+                  }
+                ]
+              },
+              "unit": "short"
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 4,
+            "w": 6,
+            "x": 0,
+            "y": 23
+          },
+          "id": 15,
+          "options": {
+            "graphMode": "area",
+            "percentChangeColorMode": "standard",
+            "showPercentChange": false
+          },
+          "pluginVersion": "v11.4.0",
+          "targets": [
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "$datasource"
+              },
+              "expr": "count(\n  cluster_autoscaler_node_group_min_count{\n    cluster=\"$cluster\",\njob=~\"$job\"\n\n  }\n)\n",
+              "instant": false
+            }
+          ],
+          "title": "Total",
+          "type": "stat"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "$datasource"
+          },
+          "description": "The percentage of node groups at capacity.",
+          "fieldConfig": {
+            "defaults": {
+              "max": 100,
+              "min": 0,
+              "thresholds": {
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": 0
+                  },
+                  {
+                    "color": "yellow",
+                    "value": 20
+                  },
+                  {
+                    "color": "red",
+                    "value": 50
+                  }
+                ]
+              },
+              "unit": "percent"
+            }
+          },
+          "gridPos": {
+            "h": 4,
+            "w": 6,
+            "x": 6,
+            "y": 23
+          },
+          "id": 16,
+          "pluginVersion": "v11.4.0",
+          "targets": [
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "$datasource"
+              },
+              "expr": "round(\n  count(\n    (\n      avg by (node_group) (\n        cluster_autoscaler_node_group_target_count{\n          cluster=\"$cluster\",\njob=~\"$job\"\n\n        }\n      ) /\n      max by (node_group) (\n        cluster_autoscaler_node_group_max_count{\n          cluster=\"$cluster\",\njob=~\"$job\"\n\n        }\n      )\n    ) >= 0.99\n  ) /\n  count(\n    cluster_autoscaler_node_group_max_count{\n      cluster=\"$cluster\",\njob=~\"$job\"\n\n    }\n  ) * 100\n) or vector(0)\n"
+            }
+          ],
+          "title": "At Capacity",
+          "type": "gauge"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "$datasource"
+          },
+          "description": "The percentage of healthy node groups in the cluster.",
+          "fieldConfig": {
+            "defaults": {
+              "max": 100,
+              "min": 0,
+              "thresholds": {
+                "steps": [
+                  {
+                    "color": "red",
+                    "value": 0
+                  },
+                  {
+                    "color": "yellow",
+                    "value": 50
+                  },
+                  {
+                    "color": "green",
+                    "value": 80
+                  }
+                ]
+              },
+              "unit": "percent"
+            }
+          },
+          "gridPos": {
+            "h": 4,
+            "w": 6,
+            "x": 12,
+            "y": 23
+          },
+          "id": 17,
+          "pluginVersion": "v11.4.0",
+          "targets": [
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "$datasource"
+              },
+              "expr": "round(\n  sum(\n    cluster_autoscaler_node_group_healthiness{\n      cluster=\"$cluster\",\njob=~\"$job\"\n\n    }\n  ) /\n  count(\n    cluster_autoscaler_node_group_healthiness{\n      cluster=\"$cluster\",\njob=~\"$job\"\n\n    }\n  ) * 100\n)\n"
+            }
+          ],
+          "title": "Healthy",
+          "type": "gauge"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "$datasource"
+          },
+          "description": "The percentage of node groups in backoff state.",
+          "fieldConfig": {
+            "defaults": {
+              "max": 100,
+              "min": 0,
+              "thresholds": {
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": 0
+                  },
+                  {
+                    "color": "yellow",
+                    "value": 20
+                  },
+                  {
+                    "color": "red",
+                    "value": 50
+                  }
+                ]
+              },
+              "unit": "percent"
+            }
+          },
+          "gridPos": {
+            "h": 4,
+            "w": 6,
+            "x": 18,
+            "y": 23
+          },
+          "id": 18,
+          "pluginVersion": "v11.4.0",
+          "targets": [
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "$datasource"
+              },
+              "expr": "round(\n  sum(\n    cluster_autoscaler_node_group_backoff_status{\n      cluster=\"$cluster\",\njob=~\"$job\"\n\n    }\n  ) /\n  count(\n    cluster_autoscaler_node_group_backoff_status{\n      cluster=\"$cluster\",\njob=~\"$job\"\n\n    }\n  ) * 100\n)\n"
+            }
+          ],
+          "title": "Backoff",
+          "type": "gauge"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "$datasource"
+          },
+          "description": "Details of node groups in the cluster. Requires --emit-per-nodegroup-metrics flag.",
+          "fieldConfig": {
+            "defaults": {
+              "links": [],
+              "thresholds": {
+                "steps": []
+              },
+              "unit": "short"
+            },
+            "overrides": [
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Healthy"
+                },
+                "properties": [
+                  {
+                    "id": "mappings",
+                    "value": [
+                      {
+                        "options": {
+                          "0": {
+                            "text": "No"
+                          },
+                          "1": {
+                            "text": "Yes"
+                          }
+                        },
+                        "type": "value"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Backoff"
+                },
+                "properties": [
+                  {
+                    "id": "mappings",
+                    "value": [
+                      {
+                        "options": {
+                          "0": {
+                            "text": "No"
+                          },
+                          "1": {
+                            "text": "Yes"
+                          }
+                        },
+                        "type": "value"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Utilization"
+                },
+                "properties": [
+                  {
+                    "id": "thresholds",
+                    "value": {
+                      "mode": "absolute"
+                    }
+                  },
+                  {
+                    "id": "unit",
+                    "value": "percent"
+                  }
+                ]
+              }
+            ]
+          },
+          "gridPos": {
+            "h": 12,
+            "w": 24,
+            "x": 0,
+            "y": 27
+          },
+          "id": 19,
+          "options": {
+            "footer": {
+              "countRows": true,
+              "enablePagination": true
+            },
+            "sortBy": [
+              {
+                "desc": false,
+                "displayName": "Group Name"
+              }
+            ]
+          },
+          "pluginVersion": "v11.4.0",
+          "targets": [
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "$datasource"
+              },
+              "expr": "min by (node_group) (\n  cluster_autoscaler_node_group_min_count{\n    cluster=\"$cluster\",\njob=~\"$job\"\n\n  }\n)\n",
+              "format": "table",
+              "instant": true,
+              "refId": "MinNodes"
+            },
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "$datasource"
+              },
+              "expr": "avg by (node_group) (\n  cluster_autoscaler_node_group_target_count{\n    cluster=\"$cluster\",\njob=~\"$job\"\n\n  }\n)\n",
+              "format": "table",
+              "instant": true,
+              "refId": "Target"
+            },
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "$datasource"
+              },
+              "expr": "max by (node_group) (\n  cluster_autoscaler_node_group_max_count{\n    cluster=\"$cluster\",\njob=~\"$job\"\n\n  }\n)\n",
+              "format": "table",
+              "instant": true,
+              "refId": "MaxNodes"
+            },
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "$datasource"
+              },
+              "expr": "min by (node_group) (\n  cluster_autoscaler_node_group_healthiness{\n    cluster=\"$cluster\",\njob=~\"$job\"\n\n  }\n)\n",
+              "format": "table",
+              "instant": true,
+              "refId": "Healthy"
+            },
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "$datasource"
+              },
+              "expr": "max by (node_group) (\n  cluster_autoscaler_node_group_backoff_status{\n    cluster=\"$cluster\",\njob=~\"$job\"\n\n  }\n)\n",
+              "format": "table",
+              "instant": true,
+              "refId": "Backoff"
+            }
+          ],
+          "title": "Node Group Details",
+          "transformations": [
+            {
+              "id": "merge"
+            },
+            {
+              "id": "calculateField",
+              "options": {
+                "alias": "Utilization_Ratio",
+                "binary": {
+                  "left": "Value #Target",
+                  "operator": "/",
+                  "right": "Value #MaxNodes"
+                },
+                "mode": "binary"
+              }
+            },
+            {
+              "id": "calculateField",
+              "options": {
+                "alias": "Utilization",
+                "binary": {
+                  "left": "Utilization_Ratio",
+                  "operator": "*",
+                  "right": "100"
+                },
+                "mode": "binary"
+              }
+            },
+            {
+              "id": "organize",
+              "options": {
+                "includeByName": {
+                  "Utilization": true,
+                  "Value #Backoff": true,
+                  "Value #Healthy": true,
+                  "Value #MaxNodes": true,
+                  "Value #MinNodes": true,
+                  "Value #Target": true,
+                  "node_group": true
+                },
+                "indexByName": {
+                  "Utilization": 4,
+                  "Value #Backoff": 6,
+                  "Value #Healthy": 5,
+                  "Value #MaxNodes": 3,
+                  "Value #MinNodes": 1,
+                  "Value #Target": 2,
+                  "node_group": 0
+                },
+                "renameByName": {
+                  "Value #Backoff": "Backoff",
+                  "Value #Healthy": "Healthy",
+                  "Value #MaxNodes": "Max Nodes",
+                  "Value #MinNodes": "Min Nodes",
+                  "Value #Target": "Target",
+                  "node_group": "Group Name"
+                }
+              }
+            }
+          ],
+          "type": "table"
+        }
+      ],
+      "schemaVersion": 39,
+      "tags": [
+        "kubernetes",
+        "autoscaling",
+        "kubernetes-autoscaling-mixin",
+        "cluster-autoscaler"
+      ],
+      "templating": {
+        "list": [
+          {
+            "current": {
+              "selected": true,
+              "text": "default",
+              "value": "default"
+            },
+            "label": "Data source",
+            "name": "datasource",
+            "query": "prometheus",
+            "type": "datasource"
+          },
+          {
+            "datasource": {
+              "type": "prometheus",
+              "uid": "${datasource}"
+            },
+            "hide": 2,
+            "label": "Cluster",
+            "name": "cluster",
+            "query": "label_values(kube_pod_info{job=~\"kube-state-metrics\"}, cluster)",
+            "refresh": 2,
+            "sort": 1,
+            "type": "query"
+          },
+          {
+            "datasource": {
+              "type": "prometheus",
+              "uid": "${datasource}"
+            },
+            "label": "Job",
+            "name": "job",
+            "query": "label_values(cluster_autoscaler_last_activity{cluster=\"$cluster\"}, job)",
+            "refresh": 2,
+            "sort": 1,
+            "type": "query"
+          }
+        ]
+      },
+      "time": {
+        "from": "now-6h",
+        "to": "now"
+      },
+      "timezone": "utc",
+      "title": "Kubernetes / Autoscaling / Cluster Autoscaler",
+      "uid": "kubernetes-autoscaling-mixin-ca-jkwq",
+      "gnetId": 22174
+    }

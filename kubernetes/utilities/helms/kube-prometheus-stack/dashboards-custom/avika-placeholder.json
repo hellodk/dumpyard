@@ -1,0 +1,49 @@
+{
+  "annotations": {
+    "list": []
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "links": [],
+  "panels": [
+    {
+      "datasource": {
+        "type": "datasource",
+        "uid": "-- Dashboard --"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "id": 1,
+      "options": {
+        "code": {
+          "language": "plaintext",
+          "showLineNumbers": false,
+          "showMiniMap": false
+        },
+        "content": "# Welcome to Avika Folder\n\nThis folder is reserved for custom dashboards.\n\n## How to Add Dashboards\n\n1. Create your dashboard JSON file in `dashboards-custom/`\n2. Create a template in `templates/grafana/dashboards-hellodk/avika/`\n3. Redeploy the Helm chart\n\n## Current Time\n\n${__from:date:YYYY-MM-DD HH:mm:ss} to ${__to:date:YYYY-MM-DD HH:mm:ss}",
+        "mode": "markdown"
+      },
+      "pluginVersion": "10.0.0",
+      "title": "Welcome",
+      "type": "text"
+    }
+  ],
+  "schemaVersion": 38,
+  "tags": ["avika", "placeholder"],
+  "templating": {
+    "list": []
+  },
+  "time": {
+    "from": "now-6h",
+    "to": "now"
+  },
+  "timepicker": {},
+  "timezone": "",
+  "title": "Avika - Welcome",
+  "weekStart": ""
+}

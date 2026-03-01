@@ -1,0 +1,29 @@
+{{- /*
+Dashboard: Kubernetes System - CoreDNS (Grafana.com ID: 15762)
+Source: https://grafana.com/grafana/dashboards/15762
+Category: Kubernetes / System
+Folder: Kubernetes/System
+Author: dotdc
+*/ -}}
+{{- $kubeTargetVersion := default .Capabilities.KubeVersion.GitVersion .Values.kubeTargetVersionOverride }}
+{{- if and (or .Values.grafana.enabled .Values.grafana.forceDeployDashboards) (semverCompare ">=1.14.0-0" $kubeTargetVersion) (semverCompare "<9.9.9-9" $kubeTargetVersion) .Values.grafana.defaultDashboardsEnabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  namespace: {{ template "kube-prometheus-stack-grafana.namespace" . }}
+  name: {{ printf "%s-%s" (include "kube-prometheus-stack.fullname" $) "dashboard-15762" | trunc 63 | trimSuffix "-" }}
+  annotations:
+    grafana_folder: "Kubernetes/System"
+{{- with .Values.grafana.sidecar.dashboards.annotations }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+  labels:
+    {{- if $.Values.grafana.sidecar.dashboards.label }}
+    {{ $.Values.grafana.sidecar.dashboards.label }}: {{ ternary $.Values.grafana.sidecar.dashboards.labelValue "1" (not (empty $.Values.grafana.sidecar.dashboards.labelValue)) | quote }}
+    {{- end }}
+    app: {{ template "kube-prometheus-stack.name" $ }}-grafana
+{{ include "kube-prometheus-stack.labels" $ | indent 4 }}
+data:
+  kubernetes-system-coredns.json: |-
+{{ .Files.Get "dashboards-custom/15762-kubernetes-system-coredns.json" | indent 4 }}
+{{- end }}

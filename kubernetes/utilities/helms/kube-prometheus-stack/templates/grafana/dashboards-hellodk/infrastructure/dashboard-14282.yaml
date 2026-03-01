@@ -1,0 +1,28 @@
+{{- /*
+Dashboard: cAdvisor Container Metrics (Grafana.com ID: 14282)
+Source: https://grafana.com/grafana/dashboards/14282
+Category: Infrastructure / Containers
+Folder: Infrastructure
+*/ -}}
+{{- $kubeTargetVersion := default .Capabilities.KubeVersion.GitVersion .Values.kubeTargetVersionOverride }}
+{{- if and (or .Values.grafana.enabled .Values.grafana.forceDeployDashboards) (semverCompare ">=1.14.0-0" $kubeTargetVersion) (semverCompare "<9.9.9-9" $kubeTargetVersion) .Values.grafana.defaultDashboardsEnabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  namespace: {{ template "kube-prometheus-stack-grafana.namespace" . }}
+  name: {{ printf "%s-%s" (include "kube-prometheus-stack.fullname" $) "dashboard-14282" | trunc 63 | trimSuffix "-" }}
+  annotations:
+    grafana_folder: "Infrastructure"
+{{- with .Values.grafana.sidecar.dashboards.annotations }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+  labels:
+    {{- if $.Values.grafana.sidecar.dashboards.label }}
+    {{ $.Values.grafana.sidecar.dashboards.label }}: {{ ternary $.Values.grafana.sidecar.dashboards.labelValue "1" (not (empty $.Values.grafana.sidecar.dashboards.labelValue)) | quote }}
+    {{- end }}
+    app: {{ template "kube-prometheus-stack.name" $ }}-grafana
+{{ include "kube-prometheus-stack.labels" $ | indent 4 }}
+data:
+  cadvisor.json: |-
+{{ .Files.Get "dashboards-custom/14282-cadvisor.json" | indent 4 }}
+{{- end }}

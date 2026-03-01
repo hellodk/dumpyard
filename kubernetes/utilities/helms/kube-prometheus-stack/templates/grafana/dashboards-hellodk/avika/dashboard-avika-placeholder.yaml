@@ -1,0 +1,28 @@
+{{- /*
+Dashboard: Avika Folder Placeholder
+Category: Custom / Avika
+Folder: Avika
+Purpose: Placeholder dashboard to create the Avika folder in Grafana
+*/ -}}
+{{- $kubeTargetVersion := default .Capabilities.KubeVersion.GitVersion .Values.kubeTargetVersionOverride }}
+{{- if and (or .Values.grafana.enabled .Values.grafana.forceDeployDashboards) (semverCompare ">=1.14.0-0" $kubeTargetVersion) (semverCompare "<9.9.9-9" $kubeTargetVersion) .Values.grafana.defaultDashboardsEnabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  namespace: {{ template "kube-prometheus-stack-grafana.namespace" . }}
+  name: {{ printf "%s-%s" (include "kube-prometheus-stack.fullname" $) "dashboard-avika" | trunc 63 | trimSuffix "-" }}
+  annotations:
+    grafana_folder: "Avika"
+    {{- with .Values.grafana.sidecar.dashboards.annotations }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+  labels:
+    {{- if $.Values.grafana.sidecar.dashboards.label }}
+    {{ $.Values.grafana.sidecar.dashboards.label }}: {{ ternary $.Values.grafana.sidecar.dashboards.labelValue "1" (not (empty $.Values.grafana.sidecar.dashboards.labelValue)) | quote }}
+    {{- end }}
+    app: {{ template "kube-prometheus-stack.name" $ }}-grafana
+{{ include "kube-prometheus-stack.labels" $ | indent 4 }}
+data:
+  avika-welcome.json: |-
+{{ .Files.Get "dashboards-custom/avika-placeholder.json" | indent 4 }}
+{{- end }}

@@ -31,3 +31,10 @@ files/dashboards/
 UPGRADE.md
 CONTRIBUTING.md
 .editorconfig
+
+# Custom additions - offline plugin ZIPs and scripts (not needed in chart)
+plugins/
+scripts/
+*.backup
+.vscode/
+IMPROVEMENTS.md

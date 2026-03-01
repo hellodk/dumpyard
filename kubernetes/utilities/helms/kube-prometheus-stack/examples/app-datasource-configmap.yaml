@@ -1,0 +1,122 @@
+# Example: How applications deploy their own Grafana datasources
+#
+# Applications can deploy this ConfigMap in their OWN namespace.
+# Grafana's sidecar will automatically discover and configure the datasource.
+#
+# REQUIREMENTS:
+# 1. Label: grafana_datasource: "1" (REQUIRED - tells sidecar this is a datasource)
+#
+# Deploy with: kubectl apply -f app-datasource-configmap.yaml -n <your-app-namespace>
+
+---
+# Example 1: ClickHouse Datasource for Avika namespace
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: avika-clickhouse-datasource
+  namespace: avika                        # App's namespace
+  labels:
+    grafana_datasource: "1"               # REQUIRED: Identifies as datasource
+data:
+  clickhouse-datasource.yaml: |
+    apiVersion: 1
+    datasources:
+      - name: ClickHouse
+        type: grafana-clickhouse-datasource
+        uid: clickhouse
+        access: proxy
+        url: http://clickhouse.avika.svc:8123    # ClickHouse HTTP interface
+        # For native protocol, use port 9000:
+        # url: clickhouse.avika.svc:9000
+        jsonData:
+          defaultDatabase: nginx_metrics         # Your database name
+          protocol: http                         # or 'native'
+          # dialTimeout: 10
+          # queryTimeout: 60
+        # If authentication is required:
+        # secureJsonData:
+        #   password: "your-password"
+        # basicAuth: true
+        # basicAuthUser: "your-username"
+
+---
+# Example 2: ClickHouse with authentication (using Secret reference)
+# First create the secret:
+# kubectl create secret generic clickhouse-credentials \
+#   --from-literal=password=your-password -n avika
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: avika-clickhouse-datasource-secure
+  namespace: avika
+  labels:
+    grafana_datasource: "1"
+data:
+  clickhouse-datasource.yaml: |
+    apiVersion: 1
+    datasources:
+      - name: ClickHouse-Secure
+        type: grafana-clickhouse-datasource
+        uid: clickhouse-secure
+        access: proxy
+        url: http://clickhouse.avika.svc:8123
+        basicAuth: true
+        basicAuthUser: default
+        jsonData:
+          defaultDatabase: nginx_metrics
+          protocol: http
+        secureJsonData:
+          basicAuthPassword: $CLICKHOUSE_PASSWORD
+
+---
+# Example 3: PostgreSQL/MySQL datasource
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: myapp-postgres-datasource
+  namespace: myapp-namespace
+  labels:
+    grafana_datasource: "1"
+data:
+  postgres-datasource.yaml: |
+    apiVersion: 1
+    datasources:
+      - name: MyApp-PostgreSQL
+        type: postgres
+        uid: myapp-postgres
+        access: proxy
+        url: postgres.myapp-namespace.svc:5432
+        database: myapp_db
+        user: grafana_reader
+        jsonData:
+          sslmode: disable
+          maxOpenConns: 10
+          maxIdleConns: 10
+        secureJsonData:
+          password: "readonly-password"
+
+---
+# Example 4: Elasticsearch/OpenSearch datasource
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: logs-opensearch-datasource
+  namespace: logging
+  labels:
+    grafana_datasource: "1"
+data:
+  opensearch-datasource.yaml: |
+    apiVersion: 1
+    datasources:
+      - name: OpenSearch-Logs
+        type: grafana-opensearch-datasource
+        uid: opensearch-logs
+        access: proxy
+        url: https://opensearch.logging.svc:9200
+        jsonData:
+          database: "logs-*"
+          timeField: "@timestamp"
+          version: "2.0.0"
+          flavor: opensearch
+          tlsSkipVerify: true
