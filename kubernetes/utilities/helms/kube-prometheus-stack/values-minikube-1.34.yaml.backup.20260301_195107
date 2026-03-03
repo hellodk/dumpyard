@@ -1459,6 +1459,11 @@ grafana:
       # Apps can set annotation "grafana_folder: MyApp" to organize their dashboards
       folderAnnotation: grafana_folder
       
+      # Use directory structure for folder names (for Helm chart's own dashboards)
+      # e.g., dashboards-hellodk/infrastructure/*.yaml → "infrastructure" folder
+      provider:
+        foldersFromFilesStructure: true
+      
       # How sidecar identifies dashboard ConfigMaps:
       # 1. Label: grafana_dashboard=1 (REQUIRED - identifies ConfigMap as a dashboard)
       # 2. Annotation: grafana_folder=FolderName (OPTIONAL - organizes into folders)
@@ -1476,9 +1481,6 @@ grafana:
           enabled: false
       provider:
         allowUiUpdates: false
-        # Use directory structure for folder names
-        # Sidecar places dashboards in /tmp/dashboards/<folder>/ based on grafana_folder annotation
-        foldersFromFilesStructure: true
     datasources:
       enabled: true
       defaultDatasourceEnabled: true
