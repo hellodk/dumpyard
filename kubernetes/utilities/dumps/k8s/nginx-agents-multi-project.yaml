@@ -1,0 +1,978 @@
+# =============================================================================
+# Multi-Project NGINX + Avika Agent Sidecar Deployments
+# =============================================================================
+# Projects: Alpha, Beta
+# Environments: dev, stage, uat
+#
+# Each deployment includes AVIKA_LABEL_* environment variables for auto-assignment
+# to the corresponding project/environment in the RBAC system.
+# =============================================================================
+
+---
+# =============================================================================
+# ConfigMap: Shared NGINX Configuration
+# =============================================================================
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nginx-config-shared
+  namespace: mocks
+  labels:
+    app: nginx-multi-project
+data:
+  nginx.conf: |
+    worker_processes auto;
+    error_log /var/log/nginx/error.log warn;
+    pid /var/run/nginx.pid;
+
+    events {
+      worker_connections 4096;
+      multi_accept on;
+    }
+
+    http {
+      include /etc/nginx/mime.types;
+      default_type application/octet-stream;
+
+      sendfile on;
+      tcp_nopush on;
+      tcp_nodelay on;
+      keepalive_timeout 65;
+
+      # Request correlation ID
+      map $request_id $req_id {
+        default $request_id;
+        "" "$remote_addr-$msec";
+      }
+
+      # Structured JSON telemetry log format
+      log_format telemetry escape=json
+      '{'
+        '"ts":"$time_iso8601",'
+        '"req_id":"$req_id",'
+        '"client":"$remote_addr",'
+        '"method":"$request_method",'
+        '"host":"$host",'
+        '"path":"$uri",'
+        '"status":$status,'
+        '"bytes":$body_bytes_sent,'
+        '"rt":$request_time,'
+        '"ua":"$http_user_agent"'
+      '}';
+
+      access_log /var/log/nginx/access.log telemetry;
+
+      # Status endpoint
+      server {
+        listen 8080;
+        server_name localhost;
+        
+        location /nginx_status {
+          stub_status;
+          allow 127.0.0.1;
+          allow 10.0.0.0/8;
+          deny all;
+        }
+
+        location /health {
+          access_log off;
+          return 200 'OK';
+          add_header Content-Type text/plain;
+        }
+      }
+
+      # Main server
+      server {
+        listen 80 default_server;
+        server_name _;
+
+        location / {
+          proxy_pass http://backend-sidecar.mocks.svc.cluster.local:5678;
+          proxy_set_header Host $host;
+          proxy_set_header X-Real-IP $remote_addr;
+          proxy_set_header X-Request-ID $req_id;
+        }
+      }
+    }
+
+---
+# =============================================================================
+# ConfigMap: Shared Avika Agent Configuration
+# =============================================================================
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: avika-agent-config-shared
+  namespace: mocks
+  labels:
+    app: nginx-multi-project
+data:
+  avika-agent.conf: |
+    GATEWAYS="avika-gateway.avika.svc.cluster.local:5020"
+    HEALTH_PORT=5026
+    MGMT_PORT=5025
+    NGINX_CONFIG_PATH="/etc/nginx/nginx.conf"
+    NGINX_STATUS_URL="http://127.0.0.1:8080/nginx_status"
+    ACCESS_LOG_PATH="/var/log/nginx/access.log"
+    ERROR_LOG_PATH="/var/log/nginx/error.log"
+    LOG_FORMAT="json"
+    BUFFER_DIR="/var/lib/avika/"
+    LOG_LEVEL="info"
+
+---
+# =============================================================================
+# PROJECT ALPHA - DEV
+# =============================================================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-alpha-dev
+  namespace: mocks
+  labels:
+    app: nginx-sidecar
+    project: alpha
+    environment: dev
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nginx-sidecar
+      project: alpha
+      environment: dev
+  template:
+    metadata:
+      labels:
+        app: nginx-sidecar
+        project: alpha
+        environment: dev
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "5026"
+    spec:
+      shareProcessNamespace: true
+      terminationGracePeriodSeconds: 30
+      
+      initContainers:
+      - name: setup-logs
+        image: busybox:1.36
+        command: ["/bin/sh", "-c", "touch /var/log/nginx/access.log /var/log/nginx/error.log && chmod 666 /var/log/nginx/*.log"]
+        volumeMounts:
+        - name: nginx-logs
+          mountPath: /var/log/nginx
+      
+      containers:
+      - name: nginx
+        image: nginx:1.27-alpine
+        ports:
+        - name: http
+          containerPort: 80
+        - name: status
+          containerPort: 8080
+        resources:
+          requests:
+            cpu: 50m
+            memory: 64Mi
+          limits:
+            cpu: 500m
+            memory: 256Mi
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 5
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 3
+          periodSeconds: 5
+        volumeMounts:
+        - name: nginx-config
+          mountPath: /etc/nginx/nginx.conf
+          subPath: nginx.conf
+        - name: nginx-logs
+          mountPath: /var/log/nginx
+      
+      - name: avika-agent
+        image: hellodk/avika-agent:latest
+        imagePullPolicy: Always
+        command: ["/usr/local/bin/avika-agent"]
+        args: ["-config=/etc/avika/avika-agent.conf"]
+        env:
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: POD_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: AVIKA_LABEL_PROJECT
+          value: "alpha"
+        - name: AVIKA_LABEL_ENVIRONMENT
+          value: "dev"
+        - name: AVIKA_LABEL_TEAM
+          value: "platform"
+        ports:
+        - name: health
+          containerPort: 5026
+        - name: mgmt
+          containerPort: 5025
+        resources:
+          requests:
+            cpu: 25m
+            memory: 32Mi
+          limits:
+            cpu: 100m
+            memory: 64Mi
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: health
+          initialDelaySeconds: 10
+          periodSeconds: 15
+        readinessProbe:
+          httpGet:
+            path: /readyz
+            port: health
+          initialDelaySeconds: 5
+          periodSeconds: 10
+        volumeMounts:
+        - name: avika-config
+          mountPath: /etc/avika
+        - name: nginx-logs
+          mountPath: /var/log/nginx
+          readOnly: true
+        - name: nginx-config
+          mountPath: /etc/nginx
+          readOnly: true
+        - name: avika-data
+          mountPath: /var/lib/avika
+      
+      volumes:
+      - name: nginx-config
+        configMap:
+          name: nginx-config-shared
+      - name: avika-config
+        configMap:
+          name: avika-agent-config-shared
+      - name: nginx-logs
+        emptyDir: {}
+      - name: avika-data
+        emptyDir: {}
+
+---
+# =============================================================================
+# PROJECT ALPHA - STAGE
+# =============================================================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-alpha-stage
+  namespace: mocks
+  labels:
+    app: nginx-sidecar
+    project: alpha
+    environment: stage
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nginx-sidecar
+      project: alpha
+      environment: stage
+  template:
+    metadata:
+      labels:
+        app: nginx-sidecar
+        project: alpha
+        environment: stage
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "5026"
+    spec:
+      shareProcessNamespace: true
+      terminationGracePeriodSeconds: 30
+      
+      initContainers:
+      - name: setup-logs
+        image: busybox:1.36
+        command: ["/bin/sh", "-c", "touch /var/log/nginx/access.log /var/log/nginx/error.log && chmod 666 /var/log/nginx/*.log"]
+        volumeMounts:
+        - name: nginx-logs
+          mountPath: /var/log/nginx
+      
+      containers:
+      - name: nginx
+        image: nginx:1.27-alpine
+        ports:
+        - name: http
+          containerPort: 80
+        - name: status
+          containerPort: 8080
+        resources:
+          requests:
+            cpu: 50m
+            memory: 64Mi
+          limits:
+            cpu: 500m
+            memory: 256Mi
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 5
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 3
+          periodSeconds: 5
+        volumeMounts:
+        - name: nginx-config
+          mountPath: /etc/nginx/nginx.conf
+          subPath: nginx.conf
+        - name: nginx-logs
+          mountPath: /var/log/nginx
+      
+      - name: avika-agent
+        image: hellodk/avika-agent:latest
+        imagePullPolicy: Always
+        command: ["/usr/local/bin/avika-agent"]
+        args: ["-config=/etc/avika/avika-agent.conf"]
+        env:
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: POD_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: AVIKA_LABEL_PROJECT
+          value: "alpha"
+        - name: AVIKA_LABEL_ENVIRONMENT
+          value: "stage"
+        - name: AVIKA_LABEL_TEAM
+          value: "platform"
+        ports:
+        - name: health
+          containerPort: 5026
+        - name: mgmt
+          containerPort: 5025
+        resources:
+          requests:
+            cpu: 25m
+            memory: 32Mi
+          limits:
+            cpu: 100m
+            memory: 64Mi
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: health
+          initialDelaySeconds: 10
+          periodSeconds: 15
+        readinessProbe:
+          httpGet:
+            path: /readyz
+            port: health
+          initialDelaySeconds: 5
+          periodSeconds: 10
+        volumeMounts:
+        - name: avika-config
+          mountPath: /etc/avika
+        - name: nginx-logs
+          mountPath: /var/log/nginx
+          readOnly: true
+        - name: nginx-config
+          mountPath: /etc/nginx
+          readOnly: true
+        - name: avika-data
+          mountPath: /var/lib/avika
+      
+      volumes:
+      - name: nginx-config
+        configMap:
+          name: nginx-config-shared
+      - name: avika-config
+        configMap:
+          name: avika-agent-config-shared
+      - name: nginx-logs
+        emptyDir: {}
+      - name: avika-data
+        emptyDir: {}
+
+---
+# =============================================================================
+# PROJECT ALPHA - UAT
+# =============================================================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-alpha-uat
+  namespace: mocks
+  labels:
+    app: nginx-sidecar
+    project: alpha
+    environment: uat
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nginx-sidecar
+      project: alpha
+      environment: uat
+  template:
+    metadata:
+      labels:
+        app: nginx-sidecar
+        project: alpha
+        environment: uat
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "5026"
+    spec:
+      shareProcessNamespace: true
+      terminationGracePeriodSeconds: 30
+      
+      initContainers:
+      - name: setup-logs
+        image: busybox:1.36
+        command: ["/bin/sh", "-c", "touch /var/log/nginx/access.log /var/log/nginx/error.log && chmod 666 /var/log/nginx/*.log"]
+        volumeMounts:
+        - name: nginx-logs
+          mountPath: /var/log/nginx
+      
+      containers:
+      - name: nginx
+        image: nginx:1.27-alpine
+        ports:
+        - name: http
+          containerPort: 80
+        - name: status
+          containerPort: 8080
+        resources:
+          requests:
+            cpu: 50m
+            memory: 64Mi
+          limits:
+            cpu: 500m
+            memory: 256Mi
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 5
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 3
+          periodSeconds: 5
+        volumeMounts:
+        - name: nginx-config
+          mountPath: /etc/nginx/nginx.conf
+          subPath: nginx.conf
+        - name: nginx-logs
+          mountPath: /var/log/nginx
+      
+      - name: avika-agent
+        image: hellodk/avika-agent:latest
+        imagePullPolicy: Always
+        command: ["/usr/local/bin/avika-agent"]
+        args: ["-config=/etc/avika/avika-agent.conf"]
+        env:
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: POD_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: AVIKA_LABEL_PROJECT
+          value: "alpha"
+        - name: AVIKA_LABEL_ENVIRONMENT
+          value: "uat"
+        - name: AVIKA_LABEL_TEAM
+          value: "platform"
+        ports:
+        - name: health
+          containerPort: 5026
+        - name: mgmt
+          containerPort: 5025
+        resources:
+          requests:
+            cpu: 25m
+            memory: 32Mi
+          limits:
+            cpu: 100m
+            memory: 64Mi
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: health
+          initialDelaySeconds: 10
+          periodSeconds: 15
+        readinessProbe:
+          httpGet:
+            path: /readyz
+            port: health
+          initialDelaySeconds: 5
+          periodSeconds: 10
+        volumeMounts:
+        - name: avika-config
+          mountPath: /etc/avika
+        - name: nginx-logs
+          mountPath: /var/log/nginx
+          readOnly: true
+        - name: nginx-config
+          mountPath: /etc/nginx
+          readOnly: true
+        - name: avika-data
+          mountPath: /var/lib/avika
+      
+      volumes:
+      - name: nginx-config
+        configMap:
+          name: nginx-config-shared
+      - name: avika-config
+        configMap:
+          name: avika-agent-config-shared
+      - name: nginx-logs
+        emptyDir: {}
+      - name: avika-data
+        emptyDir: {}
+
+---
+# =============================================================================
+# PROJECT BETA - DEV
+# =============================================================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-beta-dev
+  namespace: mocks
+  labels:
+    app: nginx-sidecar
+    project: beta
+    environment: dev
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nginx-sidecar
+      project: beta
+      environment: dev
+  template:
+    metadata:
+      labels:
+        app: nginx-sidecar
+        project: beta
+        environment: dev
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "5026"
+    spec:
+      shareProcessNamespace: true
+      terminationGracePeriodSeconds: 30
+      
+      initContainers:
+      - name: setup-logs
+        image: busybox:1.36
+        command: ["/bin/sh", "-c", "touch /var/log/nginx/access.log /var/log/nginx/error.log && chmod 666 /var/log/nginx/*.log"]
+        volumeMounts:
+        - name: nginx-logs
+          mountPath: /var/log/nginx
+      
+      containers:
+      - name: nginx
+        image: nginx:1.27-alpine
+        ports:
+        - name: http
+          containerPort: 80
+        - name: status
+          containerPort: 8080
+        resources:
+          requests:
+            cpu: 50m
+            memory: 64Mi
+          limits:
+            cpu: 500m
+            memory: 256Mi
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 5
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 3
+          periodSeconds: 5
+        volumeMounts:
+        - name: nginx-config
+          mountPath: /etc/nginx/nginx.conf
+          subPath: nginx.conf
+        - name: nginx-logs
+          mountPath: /var/log/nginx
+      
+      - name: avika-agent
+        image: hellodk/avika-agent:latest
+        imagePullPolicy: Always
+        command: ["/usr/local/bin/avika-agent"]
+        args: ["-config=/etc/avika/avika-agent.conf"]
+        env:
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: POD_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: AVIKA_LABEL_PROJECT
+          value: "beta"
+        - name: AVIKA_LABEL_ENVIRONMENT
+          value: "dev"
+        - name: AVIKA_LABEL_TEAM
+          value: "engineering"
+        ports:
+        - name: health
+          containerPort: 5026
+        - name: mgmt
+          containerPort: 5025
+        resources:
+          requests:
+            cpu: 25m
+            memory: 32Mi
+          limits:
+            cpu: 100m
+            memory: 64Mi
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: health
+          initialDelaySeconds: 10
+          periodSeconds: 15
+        readinessProbe:
+          httpGet:
+            path: /readyz
+            port: health
+          initialDelaySeconds: 5
+          periodSeconds: 10
+        volumeMounts:
+        - name: avika-config
+          mountPath: /etc/avika
+        - name: nginx-logs
+          mountPath: /var/log/nginx
+          readOnly: true
+        - name: nginx-config
+          mountPath: /etc/nginx
+          readOnly: true
+        - name: avika-data
+          mountPath: /var/lib/avika
+      
+      volumes:
+      - name: nginx-config
+        configMap:
+          name: nginx-config-shared
+      - name: avika-config
+        configMap:
+          name: avika-agent-config-shared
+      - name: nginx-logs
+        emptyDir: {}
+      - name: avika-data
+        emptyDir: {}
+
+---
+# =============================================================================
+# PROJECT BETA - STAGE
+# =============================================================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-beta-stage
+  namespace: mocks
+  labels:
+    app: nginx-sidecar
+    project: beta
+    environment: stage
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nginx-sidecar
+      project: beta
+      environment: stage
+  template:
+    metadata:
+      labels:
+        app: nginx-sidecar
+        project: beta
+        environment: stage
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "5026"
+    spec:
+      shareProcessNamespace: true
+      terminationGracePeriodSeconds: 30
+      
+      initContainers:
+      - name: setup-logs
+        image: busybox:1.36
+        command: ["/bin/sh", "-c", "touch /var/log/nginx/access.log /var/log/nginx/error.log && chmod 666 /var/log/nginx/*.log"]
+        volumeMounts:
+        - name: nginx-logs
+          mountPath: /var/log/nginx
+      
+      containers:
+      - name: nginx
+        image: nginx:1.27-alpine
+        ports:
+        - name: http
+          containerPort: 80
+        - name: status
+          containerPort: 8080
+        resources:
+          requests:
+            cpu: 50m
+            memory: 64Mi
+          limits:
+            cpu: 500m
+            memory: 256Mi
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 5
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 3
+          periodSeconds: 5
+        volumeMounts:
+        - name: nginx-config
+          mountPath: /etc/nginx/nginx.conf
+          subPath: nginx.conf
+        - name: nginx-logs
+          mountPath: /var/log/nginx
+      
+      - name: avika-agent
+        image: hellodk/avika-agent:latest
+        imagePullPolicy: Always
+        command: ["/usr/local/bin/avika-agent"]
+        args: ["-config=/etc/avika/avika-agent.conf"]
+        env:
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: POD_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: AVIKA_LABEL_PROJECT
+          value: "beta"
+        - name: AVIKA_LABEL_ENVIRONMENT
+          value: "stage"
+        - name: AVIKA_LABEL_TEAM
+          value: "engineering"
+        ports:
+        - name: health
+          containerPort: 5026
+        - name: mgmt
+          containerPort: 5025
+        resources:
+          requests:
+            cpu: 25m
+            memory: 32Mi
+          limits:
+            cpu: 100m
+            memory: 64Mi
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: health
+          initialDelaySeconds: 10
+          periodSeconds: 15
+        readinessProbe:
+          httpGet:
+            path: /readyz
+            port: health
+          initialDelaySeconds: 5
+          periodSeconds: 10
+        volumeMounts:
+        - name: avika-config
+          mountPath: /etc/avika
+        - name: nginx-logs
+          mountPath: /var/log/nginx
+          readOnly: true
+        - name: nginx-config
+          mountPath: /etc/nginx
+          readOnly: true
+        - name: avika-data
+          mountPath: /var/lib/avika
+      
+      volumes:
+      - name: nginx-config
+        configMap:
+          name: nginx-config-shared
+      - name: avika-config
+        configMap:
+          name: avika-agent-config-shared
+      - name: nginx-logs
+        emptyDir: {}
+      - name: avika-data
+        emptyDir: {}
+
+---
+# =============================================================================
+# PROJECT BETA - UAT
+# =============================================================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-beta-uat
+  namespace: mocks
+  labels:
+    app: nginx-sidecar
+    project: beta
+    environment: uat
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nginx-sidecar
+      project: beta
+      environment: uat
+  template:
+    metadata:
+      labels:
+        app: nginx-sidecar
+        project: beta
+        environment: uat
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "5026"
+    spec:
+      shareProcessNamespace: true
+      terminationGracePeriodSeconds: 30
+      
+      initContainers:
+      - name: setup-logs
+        image: busybox:1.36
+        command: ["/bin/sh", "-c", "touch /var/log/nginx/access.log /var/log/nginx/error.log && chmod 666 /var/log/nginx/*.log"]
+        volumeMounts:
+        - name: nginx-logs
+          mountPath: /var/log/nginx
+      
+      containers:
+      - name: nginx
+        image: nginx:1.27-alpine
+        ports:
+        - name: http
+          containerPort: 80
+        - name: status
+          containerPort: 8080
+        resources:
+          requests:
+            cpu: 50m
+            memory: 64Mi
+          limits:
+            cpu: 500m
+            memory: 256Mi
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 5
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 3
+          periodSeconds: 5
+        volumeMounts:
+        - name: nginx-config
+          mountPath: /etc/nginx/nginx.conf
+          subPath: nginx.conf
+        - name: nginx-logs
+          mountPath: /var/log/nginx
+      
+      - name: avika-agent
+        image: hellodk/avika-agent:latest
+        imagePullPolicy: Always
+        command: ["/usr/local/bin/avika-agent"]
+        args: ["-config=/etc/avika/avika-agent.conf"]
+        env:
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: POD_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: AVIKA_LABEL_PROJECT
+          value: "beta"
+        - name: AVIKA_LABEL_ENVIRONMENT
+          value: "uat"
+        - name: AVIKA_LABEL_TEAM
+          value: "engineering"
+        ports:
+        - name: health
+          containerPort: 5026
+        - name: mgmt
+          containerPort: 5025
+        resources:
+          requests:
+            cpu: 25m
+            memory: 32Mi
+          limits:
+            cpu: 100m
+            memory: 64Mi
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: health
+          initialDelaySeconds: 10
+          periodSeconds: 15
+        readinessProbe:
+          httpGet:
+            path: /readyz
+            port: health
+          initialDelaySeconds: 5
+          periodSeconds: 10
+        volumeMounts:
+        - name: avika-config
+          mountPath: /etc/avika
+        - name: nginx-logs
+          mountPath: /var/log/nginx
+          readOnly: true
+        - name: nginx-config
+          mountPath: /etc/nginx
+          readOnly: true
+        - name: avika-data
+          mountPath: /var/lib/avika
+      
+      volumes:
+      - name: nginx-config
+        configMap:
+          name: nginx-config-shared
+      - name: avika-config
+        configMap:
+          name: avika-agent-config-shared
+      - name: nginx-logs
+        emptyDir: {}
+      - name: avika-data
+        emptyDir: {}

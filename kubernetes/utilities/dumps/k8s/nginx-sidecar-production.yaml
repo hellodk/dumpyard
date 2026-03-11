@@ -1,0 +1,706 @@
+# =============================================================================
+# Production NGINX + Avika Agent Sidecar Deployment
+# =============================================================================
+# 
+# This template follows Kubernetes best practices for production workloads:
+# - Sidecar pattern for independent lifecycle management
+# - Resource limits and requests for QoS guarantees
+# - Security contexts with least privilege
+# - Proper health checks and readiness probes
+# - Pod disruption budgets for high availability
+# - Anti-affinity for fault tolerance
+#
+# Usage:
+#   kubectl apply -f nginx-sidecar-production.yaml
+#
+# Customization:
+#   - Update image tags to your versions
+#   - Adjust resource limits based on load testing
+#   - Configure AVIKA_GATEWAY_ADDR for your environment
+# =============================================================================
+
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: production
+  labels:
+    name: production
+    monitoring: enabled
+
+---
+# =============================================================================
+# ConfigMap: NGINX Configuration
+# =============================================================================
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nginx-config
+  namespace: production
+  labels:
+    app: nginx
+    component: config
+data:
+  nginx.conf: |
+    worker_processes auto;
+    worker_rlimit_nofile 65535;
+    
+    error_log /var/log/nginx/error.log warn;
+    pid /var/run/nginx.pid;
+
+    events {
+      worker_connections 65535;
+      multi_accept on;
+      use epoll;
+    }
+
+    http {
+      include /etc/nginx/mime.types;
+      default_type application/octet-stream;
+
+      # Performance optimizations
+      sendfile on;
+      tcp_nopush on;
+      tcp_nodelay on;
+      keepalive_timeout 65;
+      keepalive_requests 10000;
+      
+      # Buffer sizes
+      client_body_buffer_size 16k;
+      client_header_buffer_size 1k;
+      client_max_body_size 8m;
+      large_client_header_buffers 4 8k;
+
+      # Gzip compression
+      gzip on;
+      gzip_vary on;
+      gzip_proxied any;
+      gzip_comp_level 6;
+      gzip_types text/plain text/css text/xml application/json application/javascript 
+                 application/xml application/xml+rss text/javascript;
+
+      # Request correlation ID
+      map $request_id $req_id {
+        default $request_id;
+        "" "$remote_addr-$msec";
+      }
+
+      # Structured JSON telemetry log format (for Avika agent)
+      log_format telemetry escape=json
+      '{'
+        '"ts":"$time_iso8601",'
+        '"req_id":"$req_id",'
+        '"client":"$remote_addr",'
+        '"xff":"$http_x_forwarded_for",'
+        '"method":"$request_method",'
+        '"host":"$host",'
+        '"path":"$uri",'
+        '"query":"$query_string",'
+        '"status":$status,'
+        '"bytes":$body_bytes_sent,'
+        '"rt":$request_time,'
+        '"uct":"$upstream_connect_time",'
+        '"uht":"$upstream_header_time",'
+        '"urt":"$upstream_response_time",'
+        '"upstream":"$upstream_addr",'
+        '"ustatus":"$upstream_status",'
+        '"referer":"$http_referer",'
+        '"ua":"$http_user_agent",'
+        '"ssl_protocol":"$ssl_protocol",'
+        '"ssl_cipher":"$ssl_cipher"'
+      '}';
+
+      access_log /var/log/nginx/access.log telemetry;
+
+      # Upstream with health checks
+      upstream backend {
+        zone backend 256k;
+        server backend-service:8080 max_fails=3 fail_timeout=30s;
+        keepalive 64;
+      }
+
+      # Status server (internal only)
+      server {
+        listen 8080;
+        server_name localhost;
+        
+        location /nginx_status {
+          stub_status;
+          allow 127.0.0.1;
+          allow 10.0.0.0/8;
+          deny all;
+        }
+
+        location /health {
+          access_log off;
+          return 200 'OK';
+          add_header Content-Type text/plain;
+        }
+      }
+
+      # Main application server
+      server {
+        listen 80 default_server;
+        server_name _;
+
+        # Security headers
+        add_header X-Frame-Options "SAMEORIGIN" always;
+        add_header X-Content-Type-Options "nosniff" always;
+        add_header X-XSS-Protection "1; mode=block" always;
+        add_header X-Request-ID $req_id always;
+
+        location / {
+          proxy_http_version 1.1;
+          proxy_set_header Host $host;
+          proxy_set_header X-Real-IP $remote_addr;
+          proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+          proxy_set_header X-Forwarded-Proto $scheme;
+          proxy_set_header X-Request-ID $req_id;
+          proxy_set_header Connection "";
+          
+          proxy_connect_timeout 5s;
+          proxy_send_timeout 60s;
+          proxy_read_timeout 60s;
+          
+          proxy_next_upstream error timeout http_502 http_503 http_504;
+          proxy_next_upstream_tries 3;
+          
+          proxy_pass http://backend;
+        }
+      }
+    }
+
+---
+# =============================================================================
+# ConfigMap: Avika Agent Configuration
+# =============================================================================
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: avika-agent-config
+  namespace: production
+  labels:
+    app: nginx
+    component: avika-agent
+data:
+  avika-agent.conf: |
+    # Gateway connection (update for your environment)
+    GATEWAYS="avika-gateway.avika.svc.cluster.local:5020"
+    
+    # Agent identity (auto-detected from pod name if empty)
+    AGENT_ID=""
+    
+    # Network ports
+    HEALTH_PORT=5026
+    MGMT_PORT=5025
+    
+    # NGINX configuration
+    NGINX_CONFIG_PATH="/etc/nginx/nginx.conf"
+    NGINX_STATUS_URL="http://127.0.0.1:8080/nginx_status"
+    
+    # Log collection
+    ACCESS_LOG_PATH="/var/log/nginx/access.log"
+    ERROR_LOG_PATH="/var/log/nginx/error.log"
+    LOG_FORMAT="json"
+    
+    # Data persistence
+    BUFFER_DIR="/var/lib/avika/"
+    BACKUP_DIR="/var/lib/avika/backups"
+    
+    # Self-update (empty = auto from gateway, "disabled" = off)
+    UPDATE_SERVER=""
+    UPDATE_INTERVAL="24h"
+    
+    # Logging
+    LOG_LEVEL="info"
+    LOG_FILE=""
+
+---
+# =============================================================================
+# Deployment: NGINX + Avika Agent Sidecar
+# =============================================================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx
+  namespace: production
+  labels:
+    app: nginx
+    version: stable
+spec:
+  replicas: 3
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
+      maxSurge: 1
+  selector:
+    matchLabels:
+      app: nginx
+  template:
+    metadata:
+      labels:
+        app: nginx
+        version: stable
+      annotations:
+        # Prometheus scraping (if using Prometheus)
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "5026"
+        prometheus.io/path: "/metrics"
+    spec:
+      # Allow agent to see NGINX processes for version detection
+      shareProcessNamespace: true
+      
+      # Service account (create if needed for RBAC)
+      serviceAccountName: default
+      
+      # Security context for pod
+      securityContext:
+        runAsNonRoot: false  # NGINX needs root for port 80, or use >1024
+        fsGroup: 101  # nginx group
+      
+      # Anti-affinity: spread across nodes for HA
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchLabels:
+                  app: nginx
+              topologyKey: kubernetes.io/hostname
+      
+      # Termination grace period
+      terminationGracePeriodSeconds: 30
+      
+      # Init container to set up log files
+      initContainers:
+      - name: setup-logs
+        image: busybox:1.36
+        command:
+        - /bin/sh
+        - -c
+        - |
+          # Create log files with world-writable permissions
+          # nginx:alpine removes symlinks to stdout/stderr
+          touch /var/log/nginx/access.log
+          touch /var/log/nginx/error.log
+          chmod 666 /var/log/nginx/*.log
+        volumeMounts:
+        - name: nginx-logs
+          mountPath: /var/log/nginx
+        securityContext:
+          runAsUser: 0
+      
+      containers:
+      # -----------------------------------------------------------------
+      # Container 1: NGINX
+      # -----------------------------------------------------------------
+      - name: nginx
+        image: nginx:1.27-alpine
+        imagePullPolicy: IfNotPresent
+        
+        ports:
+        - name: http
+          containerPort: 80
+          protocol: TCP
+        - name: status
+          containerPort: 8080
+          protocol: TCP
+        
+        # Resource limits (adjust based on load testing)
+        resources:
+          requests:
+            cpu: 100m
+            memory: 128Mi
+          limits:
+            cpu: 1000m
+            memory: 512Mi
+        
+        # Health checks
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 5
+          periodSeconds: 10
+          timeoutSeconds: 3
+          failureThreshold: 3
+        
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 3
+          periodSeconds: 5
+          timeoutSeconds: 2
+          failureThreshold: 2
+        
+        # Lifecycle hooks
+        lifecycle:
+          preStop:
+            exec:
+              command:
+              - /bin/sh
+              - -c
+              - |
+                # Graceful shutdown: stop accepting new connections
+                nginx -s quit
+                sleep 5
+        
+        volumeMounts:
+        - name: nginx-config
+          mountPath: /etc/nginx/nginx.conf
+          subPath: nginx.conf
+          readOnly: true
+        - name: nginx-logs
+          mountPath: /var/log/nginx
+        - name: nginx-cache
+          mountPath: /var/cache/nginx
+        - name: nginx-run
+          mountPath: /var/run
+        
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+            add:
+            - NET_BIND_SERVICE  # Required for port 80
+      
+      # -----------------------------------------------------------------
+      # Container 2: Avika Agent (Sidecar)
+      # -----------------------------------------------------------------
+      - name: avika-agent
+        image: hellodk/avika-agent:latest
+        imagePullPolicy: Always
+        
+        # Use standalone agent binary, not the bundled nginx image
+        command: ["/usr/local/bin/avika-agent"]
+        args:
+        - "-config=/etc/avika/avika-agent.conf"
+        
+        env:
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: POD_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: POD_IP
+          valueFrom:
+            fieldRef:
+              fieldPath: status.podIP
+        - name: NODE_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: spec.nodeName
+        # Override gateway if needed
+        # - name: AVIKA_GATEWAY_ADDR
+        #   value: "gateway.example.com:5020"
+        
+        ports:
+        - name: health
+          containerPort: 5026
+          protocol: TCP
+        - name: mgmt
+          containerPort: 5025
+          protocol: TCP
+        
+        # Resource limits (agent is lightweight)
+        resources:
+          requests:
+            cpu: 50m
+            memory: 64Mi
+          limits:
+            cpu: 200m
+            memory: 128Mi
+        
+        # Health checks
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: health
+          initialDelaySeconds: 10
+          periodSeconds: 15
+          timeoutSeconds: 3
+          failureThreshold: 3
+        
+        readinessProbe:
+          httpGet:
+            path: /readyz
+            port: health
+          initialDelaySeconds: 5
+          periodSeconds: 10
+          timeoutSeconds: 2
+          failureThreshold: 2
+        
+        volumeMounts:
+        - name: avika-config
+          mountPath: /etc/avika
+          readOnly: true
+        - name: nginx-logs
+          mountPath: /var/log/nginx
+          readOnly: true
+        - name: nginx-config
+          mountPath: /etc/nginx
+          readOnly: true
+        - name: avika-data
+          mountPath: /var/lib/avika
+        
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop:
+            - ALL
+      
+      # -----------------------------------------------------------------
+      # Volumes
+      # -----------------------------------------------------------------
+      volumes:
+      - name: nginx-config
+        configMap:
+          name: nginx-config
+      - name: avika-config
+        configMap:
+          name: avika-agent-config
+      - name: nginx-logs
+        emptyDir: {}
+      - name: nginx-cache
+        emptyDir: {}
+      - name: nginx-run
+        emptyDir: {}
+      - name: avika-data
+        emptyDir:
+          sizeLimit: 100Mi
+
+---
+# =============================================================================
+# Service: NGINX
+# =============================================================================
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx
+  namespace: production
+  labels:
+    app: nginx
+spec:
+  type: ClusterIP
+  selector:
+    app: nginx
+  ports:
+  - name: http
+    port: 80
+    targetPort: 80
+    protocol: TCP
+  - name: status
+    port: 8080
+    targetPort: 8080
+    protocol: TCP
+
+---
+# =============================================================================
+# Service: NGINX NodePort (optional, for external access)
+# =============================================================================
+# Note: NodePort 30080 may conflict with other services. Either:
+#   - Remove nodePort to let k8s auto-assign
+#   - Use a unique port in range 30000-32767
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx-external
+  namespace: production
+  labels:
+    app: nginx
+spec:
+  type: NodePort
+  selector:
+    app: nginx
+  ports:
+  - name: http
+    port: 80
+    targetPort: 80
+    # nodePort: 30080  # Uncomment and set unique port if needed
+    protocol: TCP
+
+---
+# =============================================================================
+# PodDisruptionBudget: Ensure HA during maintenance
+# =============================================================================
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: nginx-pdb
+  namespace: production
+  labels:
+    app: nginx
+spec:
+  minAvailable: 2
+  selector:
+    matchLabels:
+      app: nginx
+
+---
+# =============================================================================
+# HorizontalPodAutoscaler: Auto-scale based on CPU
+# =============================================================================
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: nginx-hpa
+  namespace: production
+  labels:
+    app: nginx
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: nginx
+  minReplicas: 3
+  maxReplicas: 10
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 70
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 80
+  behavior:
+    scaleDown:
+      stabilizationWindowSeconds: 300
+      policies:
+      - type: Percent
+        value: 10
+        periodSeconds: 60
+    scaleUp:
+      stabilizationWindowSeconds: 0
+      policies:
+      - type: Percent
+        value: 100
+        periodSeconds: 15
+      - type: Pods
+        value: 4
+        periodSeconds: 15
+      selectPolicy: Max
+
+---
+# =============================================================================
+# NetworkPolicy: Restrict traffic (optional, enable in secure environments)
+# =============================================================================
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: nginx-network-policy
+  namespace: production
+  labels:
+    app: nginx
+spec:
+  podSelector:
+    matchLabels:
+      app: nginx
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  # Allow traffic from ingress controller
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          name: ingress-nginx
+    ports:
+    - protocol: TCP
+      port: 80
+  # Allow internal traffic
+  - from:
+    - podSelector: {}
+    ports:
+    - protocol: TCP
+      port: 80
+    - protocol: TCP
+      port: 8080
+  egress:
+  # Allow DNS
+  - to:
+    - namespaceSelector: {}
+    ports:
+    - protocol: UDP
+      port: 53
+  # Allow backend
+  - to:
+    - podSelector:
+        matchLabels:
+          app: backend
+    ports:
+    - protocol: TCP
+      port: 8080
+  # Allow Avika gateway
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          name: avika
+    ports:
+    - protocol: TCP
+      port: 5020
+
+---
+# =============================================================================
+# Sample Backend Service (for testing - replace with your actual backend)
+# =============================================================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend
+  namespace: production
+  labels:
+    app: backend
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: backend
+  template:
+    metadata:
+      labels:
+        app: backend
+    spec:
+      containers:
+      - name: backend
+        image: hashicorp/http-echo
+        args:
+        - "-listen=:8080"
+        - "-text=OK from backend"
+        ports:
+        - containerPort: 8080
+        resources:
+          requests:
+            cpu: 10m
+            memory: 16Mi
+          limits:
+            cpu: 100m
+            memory: 64Mi
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: backend-service
+  namespace: production
+  labels:
+    app: backend
+spec:
+  selector:
+    app: backend
+  ports:
+  - port: 8080
+    targetPort: 8080
+    protocol: TCP

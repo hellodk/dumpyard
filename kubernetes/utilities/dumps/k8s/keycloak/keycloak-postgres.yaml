@@ -1,0 +1,77 @@
+---
+# PostgreSQL for Keycloak (separate from app PostgreSQL)
+apiVersion: v1
+kind: Secret
+metadata:
+  name: keycloak-postgres-secret
+  namespace: utilities
+type: Opaque
+stringData:
+  POSTGRES_USER: keycloak
+  POSTGRES_PASSWORD: keycloak-db-pass-2024
+  POSTGRES_DB: keycloak
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: keycloak-postgres-pvc
+  namespace: utilities
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: nfs-client
+  resources:
+    requests:
+      storage: 2Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: keycloak-postgres
+  namespace: utilities
+  labels:
+    app: keycloak-postgres
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: keycloak-postgres
+  template:
+    metadata:
+      labels:
+        app: keycloak-postgres
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:15-alpine
+          ports:
+            - containerPort: 5432
+          envFrom:
+            - secretRef:
+                name: keycloak-postgres-secret
+          volumeMounts:
+            - name: postgres-data
+              mountPath: /var/lib/postgresql/data
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "100m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+      volumes:
+        - name: postgres-data
+          persistentVolumeClaim:
+            claimName: keycloak-postgres-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: keycloak-postgres
+  namespace: utilities
+spec:
+  selector:
+    app: keycloak-postgres
+  ports:
+    - port: 5432
+      targetPort: 5432

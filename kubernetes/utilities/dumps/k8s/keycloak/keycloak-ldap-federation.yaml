@@ -1,0 +1,186 @@
+---
+# Job to configure Keycloak LDAP Federation
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: keycloak-ldap-config
+  namespace: utilities
+data:
+  configure-ldap.sh: |
+    #!/bin/bash
+    set -e
+
+    KC_SERVER="http://keycloak.utilities.svc.cluster.local:8080"
+    KC_REALM="avika"
+    KC_ADMIN="admin"
+    KC_ADMIN_PASS="${KEYCLOAK_ADMIN_PASSWORD}"
+
+    echo "Waiting for Keycloak to be ready..."
+    MAX_ATTEMPTS=30
+    ATTEMPT=0
+    until /opt/keycloak/bin/kcadm.sh config credentials --server ${KC_SERVER} --realm master --user ${KC_ADMIN} --password "${KC_ADMIN_PASS}" > /dev/null 2>&1; do
+      ATTEMPT=$((ATTEMPT + 1))
+      if [ $ATTEMPT -ge $MAX_ATTEMPTS ]; then
+        echo "Keycloak not ready after ${MAX_ATTEMPTS} attempts, failing..."
+        exit 1
+      fi
+      echo "Keycloak not ready (attempt ${ATTEMPT}/${MAX_ATTEMPTS}), waiting..."
+      sleep 5
+    done
+    echo "Keycloak is ready!"
+
+    echo "Checking if LDAP federation already exists..."
+    EXISTING=$(/opt/keycloak/bin/kcadm.sh get components -r ${KC_REALM} --query name=ldap-avika 2>/dev/null | grep -c "ldap-avika" || true)
+
+    if [ "$EXISTING" -gt 0 ]; then
+      echo "LDAP federation already configured, skipping..."
+      exit 0
+    fi
+
+    echo "Creating LDAP User Federation..."
+    /opt/keycloak/bin/kcadm.sh create components -r ${KC_REALM} -s name=ldap-avika \
+      -s providerId=ldap \
+      -s providerType=org.keycloak.storage.UserStorageProvider \
+      -s 'config.enabled=["true"]' \
+      -s 'config.priority=["0"]' \
+      -s 'config.editMode=["WRITABLE"]' \
+      -s 'config.syncRegistrations=["true"]' \
+      -s 'config.vendor=["other"]' \
+      -s 'config.usernameLDAPAttribute=["uid"]' \
+      -s 'config.rdnLDAPAttribute=["cn"]' \
+      -s 'config.uuidLDAPAttribute=["entryUUID"]' \
+      -s 'config.userObjectClasses=["inetOrgPerson, posixAccount"]' \
+      -s 'config.connectionUrl=["ldap://openldap.utilities.svc.cluster.local:389"]' \
+      -s 'config.usersDn=["ou=users,dc=avika,dc=local"]' \
+      -s 'config.authType=["simple"]' \
+      -s 'config.bindDn=["cn=admin,dc=avika,dc=local"]' \
+      -s "config.bindCredential=[\"${LDAP_ADMIN_PASSWORD}\"]" \
+      -s 'config.searchScope=["1"]' \
+      -s 'config.useTruststoreSpi=["ldapsOnly"]' \
+      -s 'config.connectionPooling=["true"]' \
+      -s 'config.pagination=["true"]' \
+      -s 'config.batchSizeForSync=["1000"]' \
+      -s 'config.fullSyncPeriod=["-1"]' \
+      -s 'config.changedSyncPeriod=["-1"]' \
+      -s 'config.importEnabled=["true"]' \
+      -s 'config.allowKerberosAuthentication=["false"]'
+
+    echo "Getting LDAP component ID..."
+    LDAP_ID=$(/opt/keycloak/bin/kcadm.sh get components -r ${KC_REALM} --query name=ldap-avika --fields id --format csv 2>/dev/null | tail -1 | tr -d '"')
+    echo "LDAP Component ID: ${LDAP_ID}"
+
+    echo "Creating user attribute mappers..."
+
+    # Email mapper
+    /opt/keycloak/bin/kcadm.sh create components -r ${KC_REALM} \
+      -s name=email \
+      -s providerId=user-attribute-ldap-mapper \
+      -s providerType=org.keycloak.storage.ldap.mappers.LDAPStorageMapper \
+      -s parentId=${LDAP_ID} \
+      -s 'config."user.model.attribute"=["email"]' \
+      -s 'config."ldap.attribute"=["mail"]' \
+      -s 'config."read.only"=["false"]' \
+      -s 'config."always.read.value.from.ldap"=["false"]' \
+      -s 'config."is.mandatory.in.ldap"=["false"]'
+
+    # First name mapper
+    /opt/keycloak/bin/kcadm.sh create components -r ${KC_REALM} \
+      -s name=first-name \
+      -s providerId=user-attribute-ldap-mapper \
+      -s providerType=org.keycloak.storage.ldap.mappers.LDAPStorageMapper \
+      -s parentId=${LDAP_ID} \
+      -s 'config."user.model.attribute"=["firstName"]' \
+      -s 'config."ldap.attribute"=["givenName"]' \
+      -s 'config."read.only"=["false"]' \
+      -s 'config."always.read.value.from.ldap"=["false"]' \
+      -s 'config."is.mandatory.in.ldap"=["false"]'
+
+    # Last name mapper
+    /opt/keycloak/bin/kcadm.sh create components -r ${KC_REALM} \
+      -s name=last-name \
+      -s providerId=user-attribute-ldap-mapper \
+      -s providerType=org.keycloak.storage.ldap.mappers.LDAPStorageMapper \
+      -s parentId=${LDAP_ID} \
+      -s 'config."user.model.attribute"=["lastName"]' \
+      -s 'config."ldap.attribute"=["sn"]' \
+      -s 'config."read.only"=["false"]' \
+      -s 'config."always.read.value.from.ldap"=["false"]' \
+      -s 'config."is.mandatory.in.ldap"=["false"]'
+
+    # Username mapper
+    /opt/keycloak/bin/kcadm.sh create components -r ${KC_REALM} \
+      -s name=username \
+      -s providerId=user-attribute-ldap-mapper \
+      -s providerType=org.keycloak.storage.ldap.mappers.LDAPStorageMapper \
+      -s parentId=${LDAP_ID} \
+      -s 'config."user.model.attribute"=["username"]' \
+      -s 'config."ldap.attribute"=["uid"]' \
+      -s 'config."read.only"=["false"]' \
+      -s 'config."always.read.value.from.ldap"=["false"]' \
+      -s 'config."is.mandatory.in.ldap"=["true"]'
+
+    echo "Creating group mapper..."
+    /opt/keycloak/bin/kcadm.sh create components -r ${KC_REALM} \
+      -s name=ldap-groups \
+      -s providerId=group-ldap-mapper \
+      -s providerType=org.keycloak.storage.ldap.mappers.LDAPStorageMapper \
+      -s parentId=${LDAP_ID} \
+      -s 'config."groups.dn"=["ou=groups,dc=avika,dc=local"]' \
+      -s 'config."group.name.ldap.attribute"=["cn"]' \
+      -s 'config."group.object.classes"=["groupOfNames"]' \
+      -s 'config."preserve.group.inheritance"=["true"]' \
+      -s 'config."membership.ldap.attribute"=["member"]' \
+      -s 'config."membership.attribute.type"=["DN"]' \
+      -s 'config."membership.user.ldap.attribute"=["cn"]' \
+      -s 'config."groups.ldap.filter"=[""]' \
+      -s 'config."mode"=["LDAP_ONLY"]' \
+      -s 'config."user.roles.retrieve.strategy"=["LOAD_GROUPS_BY_MEMBER_ATTRIBUTE"]' \
+      -s 'config."memberof.ldap.attribute"=["memberOf"]' \
+      -s 'config."ignore.missing.groups"=["false"]' \
+      -s 'config."drop.non.existing.groups.during.sync"=["false"]'
+
+    echo "Syncing LDAP users to Keycloak..."
+    /opt/keycloak/bin/kcadm.sh create user-storage/${LDAP_ID}/sync -r ${KC_REALM} -s action=triggerFullSync
+
+    echo "LDAP Federation configured successfully!"
+    echo ""
+    echo "You can now login to Keycloak with LDAP users:"
+    echo "  - admin / admin123"
+    echo "  - developer1 / dev123"
+    echo "  - developer2 / dev123"
+    echo "  - viewer1 / view123"
+    echo "  - viewer2 / view123"
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: keycloak-ldap-federation
+  namespace: utilities
+spec:
+  ttlSecondsAfterFinished: 600
+  template:
+    spec:
+      restartPolicy: OnFailure
+      containers:
+        - name: configure
+          image: quay.io/keycloak/keycloak:23.0
+          command: ["/bin/bash", "/scripts/configure-ldap.sh"]
+          env:
+            - name: KEYCLOAK_ADMIN_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: keycloak-admin-secret
+                  key: KEYCLOAK_ADMIN_PASSWORD
+            - name: LDAP_ADMIN_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: openldap-secret
+                  key: LDAP_ADMIN_PASSWORD
+          volumeMounts:
+            - name: scripts
+              mountPath: /scripts
+      volumes:
+        - name: scripts
+          configMap:
+            name: keycloak-ldap-config
+            defaultMode: 0755

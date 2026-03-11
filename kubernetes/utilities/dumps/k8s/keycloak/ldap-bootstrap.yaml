@@ -1,0 +1,206 @@
+---
+# LDAP Bootstrap Job - Creates groups and additional structure
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ldap-bootstrap-config
+  namespace: utilities
+data:
+  bootstrap.ldif: |
+    # Create Users OU
+    dn: ou=users,dc=avika,dc=local
+    objectClass: organizationalUnit
+    ou: users
+
+    # Create Groups OU
+    dn: ou=groups,dc=avika,dc=local
+    objectClass: organizationalUnit
+    ou: groups
+
+    # User: admin
+    dn: cn=admin,ou=users,dc=avika,dc=local
+    objectClass: inetOrgPerson
+    objectClass: posixAccount
+    objectClass: shadowAccount
+    cn: admin
+    sn: User
+    givenName: Admin
+    uid: admin
+    uidNumber: 1001
+    gidNumber: 1001
+    homeDirectory: /home/admin
+    mail: admin@avika.local
+    userPassword: admin123
+
+    # User: developer1
+    dn: cn=developer1,ou=users,dc=avika,dc=local
+    objectClass: inetOrgPerson
+    objectClass: posixAccount
+    objectClass: shadowAccount
+    cn: developer1
+    sn: Developer
+    givenName: Alice
+    uid: developer1
+    uidNumber: 1002
+    gidNumber: 1001
+    homeDirectory: /home/developer1
+    mail: dev1@avika.local
+    userPassword: dev123
+
+    # User: developer2
+    dn: cn=developer2,ou=users,dc=avika,dc=local
+    objectClass: inetOrgPerson
+    objectClass: posixAccount
+    objectClass: shadowAccount
+    cn: developer2
+    sn: Developer
+    givenName: Bob
+    uid: developer2
+    uidNumber: 1003
+    gidNumber: 1001
+    homeDirectory: /home/developer2
+    mail: dev2@avika.local
+    userPassword: dev123
+
+    # User: viewer1
+    dn: cn=viewer1,ou=users,dc=avika,dc=local
+    objectClass: inetOrgPerson
+    objectClass: posixAccount
+    objectClass: shadowAccount
+    cn: viewer1
+    sn: Viewer
+    givenName: Charlie
+    uid: viewer1
+    uidNumber: 1004
+    gidNumber: 1001
+    homeDirectory: /home/viewer1
+    mail: viewer1@avika.local
+    userPassword: view123
+
+    # User: viewer2
+    dn: cn=viewer2,ou=users,dc=avika,dc=local
+    objectClass: inetOrgPerson
+    objectClass: posixAccount
+    objectClass: shadowAccount
+    cn: viewer2
+    sn: Viewer
+    givenName: Diana
+    uid: viewer2
+    uidNumber: 1005
+    gidNumber: 1001
+    homeDirectory: /home/viewer2
+    mail: viewer2@avika.local
+    userPassword: view123
+
+    # Admin Group
+    dn: cn=admins,ou=groups,dc=avika,dc=local
+    objectClass: groupOfNames
+    cn: admins
+    description: Administrators with full access
+    member: cn=admin,ou=users,dc=avika,dc=local
+
+    # Developers Group
+    dn: cn=developers,ou=groups,dc=avika,dc=local
+    objectClass: groupOfNames
+    cn: developers
+    description: Developers with edit access
+    member: cn=developer1,ou=users,dc=avika,dc=local
+    member: cn=developer2,ou=users,dc=avika,dc=local
+
+    # Viewers Group
+    dn: cn=viewers,ou=groups,dc=avika,dc=local
+    objectClass: groupOfNames
+    cn: viewers
+    description: Viewers with read-only access
+    member: cn=viewer1,ou=users,dc=avika,dc=local
+    member: cn=viewer2,ou=users,dc=avika,dc=local
+
+    # Grafana Admins Group
+    dn: cn=grafana-admins,ou=groups,dc=avika,dc=local
+    objectClass: groupOfNames
+    cn: grafana-admins
+    description: Grafana administrators
+    member: cn=admin,ou=users,dc=avika,dc=local
+
+    # Grafana Editors Group
+    dn: cn=grafana-editors,ou=groups,dc=avika,dc=local
+    objectClass: groupOfNames
+    cn: grafana-editors
+    description: Grafana editors
+    member: cn=developer1,ou=users,dc=avika,dc=local
+    member: cn=developer2,ou=users,dc=avika,dc=local
+
+    # ArgoCD Admins Group
+    dn: cn=argocd-admins,ou=groups,dc=avika,dc=local
+    objectClass: groupOfNames
+    cn: argocd-admins
+    description: ArgoCD administrators
+    member: cn=admin,ou=users,dc=avika,dc=local
+
+  bootstrap.sh: |
+    #!/bin/bash
+    set -e
+    
+    echo "Waiting for LDAP to be ready..."
+    until ldapsearch -x -H ldap://openldap.utilities.svc.cluster.local:389 -D "cn=admin,dc=avika,dc=local" -w "$LDAP_ADMIN_PASSWORD" -b "dc=avika,dc=local" > /dev/null 2>&1; do
+      echo "LDAP not ready, waiting..."
+      sleep 5
+    done
+    
+    echo "LDAP is ready, checking if bootstrap is needed..."
+    
+    # Check if groups OU exists
+    if ldapsearch -x -H ldap://openldap.utilities.svc.cluster.local:389 -D "cn=admin,dc=avika,dc=local" -w "$LDAP_ADMIN_PASSWORD" -b "ou=groups,dc=avika,dc=local" > /dev/null 2>&1; then
+      echo "Groups OU already exists, skipping bootstrap"
+      exit 0
+    fi
+    
+    echo "Running LDAP bootstrap..."
+    ldapadd -x -H ldap://openldap.utilities.svc.cluster.local:389 -D "cn=admin,dc=avika,dc=local" -w "$LDAP_ADMIN_PASSWORD" -f /ldif/bootstrap.ldif || true
+    
+    echo "Bootstrap complete!"
+    
+    # Verify
+    echo "Verifying groups..."
+    ldapsearch -x -H ldap://openldap.utilities.svc.cluster.local:389 -D "cn=admin,dc=avika,dc=local" -w "$LDAP_ADMIN_PASSWORD" -b "ou=groups,dc=avika,dc=local" "(objectClass=groupOfNames)" cn
+---
+# Bootstrap Job
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: ldap-bootstrap
+  namespace: utilities
+spec:
+  ttlSecondsAfterFinished: 300
+  template:
+    spec:
+      restartPolicy: OnFailure
+      containers:
+        - name: bootstrap
+          image: osixia/openldap:1.5.0
+          command: ["/bin/bash", "/scripts/bootstrap.sh"]
+          env:
+            - name: LDAP_ADMIN_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: openldap-secret
+                  key: LDAP_ADMIN_PASSWORD
+          volumeMounts:
+            - name: ldif
+              mountPath: /ldif
+            - name: scripts
+              mountPath: /scripts
+      volumes:
+        - name: ldif
+          configMap:
+            name: ldap-bootstrap-config
+            items:
+              - key: bootstrap.ldif
+                path: bootstrap.ldif
+        - name: scripts
+          configMap:
+            name: ldap-bootstrap-config
+            defaultMode: 0755
+            items:
+              - key: bootstrap.sh
+                path: bootstrap.sh

@@ -1,0 +1,79 @@
+# values-scaled.yaml — overlay for scaling kube-prometheus-stack
+# Use with: helm upgrade -f values.yaml -f values-scaled.yaml ...
+# Addresses: queries >30s, higher load, and better availability.
+
+# --- Prometheus Server ---
+prometheus:
+  prometheusSpec:
+    # Allow long-running queries (e.g. 5m); default is 2m
+    query:
+      timeout: 5m
+      # Uncomment if you hit "max samples" limits on heavy range queries:
+      # maxSamples: 100000000
+
+    # Read scaling: 2 replicas share query load (same data on each)
+    replicas: 2
+
+    # Retention and size cap
+    retention: 15d
+    retentionSize: "45GB"
+
+    # Scrape/evaluation (adjust if you need different resolution)
+    scrapeInterval: 30s
+    scrapeTimeout: 10s
+    evaluationInterval: 30s
+
+    # Resources — scale up with series count and retention
+    resources:
+      requests:
+        cpu: 500m
+        memory: 2Gi
+      limits:
+        cpu: 2000m
+        memory: 8Gi
+
+    # Persistent storage — set storageClassName to your fast disk class
+    storageSpec:
+      volumeClaimTemplate:
+        spec:
+          storageClassName: ""   # e.g. fast-ssd, gp3, standard
+          accessModes: ["ReadWriteOnce"]
+          resources:
+            requests:
+              storage: 50Gi
+
+    # Spread replicas across nodes
+    podAntiAffinity: soft
+    podAntiAffinityTopologyKey: kubernetes.io/hostname
+
+    # Optional: enable query logging to debug slow queries (ensure volume exists)
+    # queryLogFile: /var/log/prometheus/query.log
+
+# --- Grafana datasource timeout (must be >= Prometheus query timeout) ---
+# Timeout in seconds; 300 = 5 minutes to match query.timeout: 5m
+grafana:
+  sidecar:
+    datasources:
+      timeout: 300
+
+# --- Prometheus Operator (optional, for larger clusters) ---
+prometheusOperator:
+  resources:
+    requests:
+      cpu: 100m
+      memory: 150Mi
+    limits:
+      cpu: 500m
+      memory: 500Mi
+
+# --- Alertmanager HA (optional) ---
+alertmanager:
+  alertmanagerSpec:
+    replicas: 2
+    resources:
+      requests:
+        cpu: 50m
+        memory: 64Mi
+      limits:
+        cpu: 200m
+        memory: 128Mi

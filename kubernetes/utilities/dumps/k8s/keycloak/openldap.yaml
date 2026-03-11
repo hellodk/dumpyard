@@ -1,0 +1,139 @@
+---
+# OpenLDAP Secrets
+apiVersion: v1
+kind: Secret
+metadata:
+  name: openldap-secret
+  namespace: utilities
+type: Opaque
+stringData:
+  LDAP_ADMIN_USERNAME: admin
+  LDAP_ADMIN_PASSWORD: LdapAdmin2024!
+  LDAP_CONFIG_PASSWORD: LdapConfig2024!
+---
+# OpenLDAP PVC for persistent data
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: openldap-pvc
+  namespace: utilities
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: nfs-client
+  resources:
+    requests:
+      storage: 1Gi
+---
+# OpenLDAP Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: openldap
+  namespace: utilities
+  labels:
+    app: openldap
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: openldap
+  template:
+    metadata:
+      labels:
+        app: openldap
+    spec:
+      containers:
+        - name: openldap
+          image: osixia/openldap:1.5.0
+          ports:
+            - containerPort: 389
+              name: ldap
+            - containerPort: 636
+              name: ldaps
+          env:
+            - name: LDAP_ORGANISATION
+              value: "Avika"
+            - name: LDAP_DOMAIN
+              value: "avika.local"
+            - name: LDAP_BASE_DN
+              value: "dc=avika,dc=local"
+            - name: LDAP_ADMIN_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: openldap-secret
+                  key: LDAP_ADMIN_PASSWORD
+            - name: LDAP_CONFIG_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: openldap-secret
+                  key: LDAP_CONFIG_PASSWORD
+            - name: LDAP_TLS
+              value: "false"
+            - name: LDAP_TLS_VERIFY_CLIENT
+              value: "never"
+          volumeMounts:
+            - name: ldap-data
+              mountPath: /var/lib/ldap
+            - name: ldap-config
+              mountPath: /etc/ldap/slapd.d
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "100m"
+            limits:
+              memory: "256Mi"
+              cpu: "500m"
+          readinessProbe:
+            tcpSocket:
+              port: 389
+            initialDelaySeconds: 20
+            periodSeconds: 10
+          livenessProbe:
+            tcpSocket:
+              port: 389
+            initialDelaySeconds: 30
+            periodSeconds: 30
+      volumes:
+        - name: ldap-data
+          persistentVolumeClaim:
+            claimName: openldap-pvc
+        - name: ldap-config
+          emptyDir: {}
+---
+# OpenLDAP Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: openldap
+  namespace: utilities
+  labels:
+    app: openldap
+spec:
+  selector:
+    app: openldap
+  ports:
+    - port: 389
+      targetPort: 389
+      name: ldap
+    - port: 636
+      targetPort: 636
+      name: ldaps
+---
+# OpenLDAP NodePort Service for external access
+apiVersion: v1
+kind: Service
+metadata:
+  name: openldap-nodeport
+  namespace: utilities
+  labels:
+    app: openldap
+spec:
+  type: NodePort
+  selector:
+    app: openldap
+  ports:
+    - port: 389
+      targetPort: 389
+      nodePort: 30389
+      name: ldap

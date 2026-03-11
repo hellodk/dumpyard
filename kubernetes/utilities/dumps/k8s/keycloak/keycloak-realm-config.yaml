@@ -1,0 +1,269 @@
+---
+# Pre-configured realm with 5 users for testing
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: keycloak-realm-config
+  namespace: utilities
+data:
+  avika-realm.json: |
+    {
+      "realm": "avika",
+      "enabled": true,
+      "displayName": "Avika Identity",
+      "displayNameHtml": "<b>Avika</b> Identity",
+      "loginTheme": "keycloak",
+      "accessTokenLifespan": 3600,
+      "ssoSessionIdleTimeout": 1800,
+      "ssoSessionMaxLifespan": 36000,
+      "registrationAllowed": false,
+      "resetPasswordAllowed": true,
+      "editUsernameAllowed": false,
+      "bruteForceProtected": true,
+      "roles": {
+        "realm": [
+          {
+            "name": "admin",
+            "description": "Administrator role with full access"
+          },
+          {
+            "name": "developer",
+            "description": "Developer role with read/write access"
+          },
+          {
+            "name": "viewer",
+            "description": "Viewer role with read-only access"
+          },
+          {
+            "name": "grafana-admin",
+            "description": "Grafana administrator"
+          },
+          {
+            "name": "grafana-editor",
+            "description": "Grafana editor"
+          },
+          {
+            "name": "argocd-admin",
+            "description": "ArgoCD administrator"
+          }
+        ]
+      },
+      "groups": [
+        {
+          "name": "admins",
+          "realmRoles": ["admin", "grafana-admin", "argocd-admin"]
+        },
+        {
+          "name": "developers",
+          "realmRoles": ["developer", "grafana-editor"]
+        },
+        {
+          "name": "viewers",
+          "realmRoles": ["viewer"]
+        }
+      ],
+      "users": [
+        {
+          "username": "admin",
+          "email": "admin@avika.local",
+          "firstName": "Admin",
+          "lastName": "User",
+          "enabled": true,
+          "emailVerified": true,
+          "credentials": [
+            {
+              "type": "password",
+              "value": "admin123",
+              "temporary": false
+            }
+          ],
+          "realmRoles": ["admin", "grafana-admin", "argocd-admin"],
+          "groups": ["admins"]
+        },
+        {
+          "username": "developer1",
+          "email": "dev1@avika.local",
+          "firstName": "Alice",
+          "lastName": "Developer",
+          "enabled": true,
+          "emailVerified": true,
+          "credentials": [
+            {
+              "type": "password",
+              "value": "dev123",
+              "temporary": false
+            }
+          ],
+          "realmRoles": ["developer", "grafana-editor"],
+          "groups": ["developers"]
+        },
+        {
+          "username": "developer2",
+          "email": "dev2@avika.local",
+          "firstName": "Bob",
+          "lastName": "Developer",
+          "enabled": true,
+          "emailVerified": true,
+          "credentials": [
+            {
+              "type": "password",
+              "value": "dev123",
+              "temporary": false
+            }
+          ],
+          "realmRoles": ["developer", "grafana-editor"],
+          "groups": ["developers"]
+        },
+        {
+          "username": "viewer1",
+          "email": "viewer1@avika.local",
+          "firstName": "Charlie",
+          "lastName": "Viewer",
+          "enabled": true,
+          "emailVerified": true,
+          "credentials": [
+            {
+              "type": "password",
+              "value": "view123",
+              "temporary": false
+            }
+          ],
+          "realmRoles": ["viewer"],
+          "groups": ["viewers"]
+        },
+        {
+          "username": "viewer2",
+          "email": "viewer2@avika.local",
+          "firstName": "Diana",
+          "lastName": "Viewer",
+          "enabled": true,
+          "emailVerified": true,
+          "credentials": [
+            {
+              "type": "password",
+              "value": "view123",
+              "temporary": false
+            }
+          ],
+          "realmRoles": ["viewer"],
+          "groups": ["viewers"]
+        }
+      ],
+      "clients": [
+        {
+          "clientId": "grafana",
+          "name": "Grafana",
+          "enabled": true,
+          "clientAuthenticatorType": "client-secret",
+          "secret": "grafana-client-secret-2024",
+          "redirectUris": [
+            "http://localhost:3000/*",
+            "http://grafana.avika.local/*",
+            "http://monitoring-grafana.monitoring.svc.cluster.local/*",
+            "https://grafana.avika.local/*"
+          ],
+          "webOrigins": ["*"],
+          "standardFlowEnabled": true,
+          "directAccessGrantsEnabled": true,
+          "publicClient": false,
+          "protocol": "openid-connect",
+          "attributes": {
+            "login_theme": "keycloak"
+          },
+          "protocolMappers": [
+            {
+              "name": "groups",
+              "protocol": "openid-connect",
+              "protocolMapper": "oidc-group-membership-mapper",
+              "config": {
+                "full.path": "false",
+                "id.token.claim": "true",
+                "access.token.claim": "true",
+                "claim.name": "groups",
+                "userinfo.token.claim": "true"
+              }
+            },
+            {
+              "name": "realm-roles",
+              "protocol": "openid-connect",
+              "protocolMapper": "oidc-usermodel-realm-role-mapper",
+              "config": {
+                "multivalued": "true",
+                "id.token.claim": "true",
+                "access.token.claim": "true",
+                "claim.name": "roles",
+                "userinfo.token.claim": "true"
+              }
+            }
+          ]
+        },
+        {
+          "clientId": "argocd",
+          "name": "ArgoCD",
+          "enabled": true,
+          "clientAuthenticatorType": "client-secret",
+          "secret": "argocd-client-secret-2024",
+          "redirectUris": [
+            "http://localhost:8080/*",
+            "http://argocd.avika.local/*",
+            "https://argocd.avika.local/*"
+          ],
+          "webOrigins": ["*"],
+          "standardFlowEnabled": true,
+          "directAccessGrantsEnabled": true,
+          "publicClient": false,
+          "protocol": "openid-connect",
+          "protocolMappers": [
+            {
+              "name": "groups",
+              "protocol": "openid-connect",
+              "protocolMapper": "oidc-group-membership-mapper",
+              "config": {
+                "full.path": "false",
+                "id.token.claim": "true",
+                "access.token.claim": "true",
+                "claim.name": "groups",
+                "userinfo.token.claim": "true"
+              }
+            }
+          ]
+        },
+        {
+          "clientId": "kibana",
+          "name": "Kibana (ELK)",
+          "enabled": true,
+          "clientAuthenticatorType": "client-secret",
+          "secret": "kibana-client-secret-2024",
+          "redirectUris": [
+            "http://localhost:5601/*",
+            "http://kibana.avika.local/*",
+            "https://kibana.avika.local/*"
+          ],
+          "webOrigins": ["*"],
+          "standardFlowEnabled": true,
+          "directAccessGrantsEnabled": true,
+          "publicClient": false,
+          "protocol": "openid-connect"
+        },
+        {
+          "clientId": "haproxy",
+          "name": "HAProxy",
+          "enabled": true,
+          "clientAuthenticatorType": "client-secret",
+          "secret": "haproxy-client-secret-2024",
+          "redirectUris": [
+            "http://localhost/*",
+            "http://haproxy.avika.local/*",
+            "https://haproxy.avika.local/*"
+          ],
+          "webOrigins": ["*"],
+          "standardFlowEnabled": true,
+          "directAccessGrantsEnabled": true,
+          "publicClient": false,
+          "protocol": "openid-connect"
+        }
+      ],
+      "browserSecurityHeaders": {
+        "contentSecurityPolicy": "frame-src 'self'; frame-ancestors 'self'; object-src 'none';"
+      }
+    }
