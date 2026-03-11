@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>kube-prometheus-stack Scaling Guide and values-scaled.yaml</title>
+  <style>
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+    /* CSS for syntax highlighting */
+    pre > code.sourceCode { white-space: pre; position: relative; }
+    pre > code.sourceCode > span { line-height: 1.25; }
+    pre > code.sourceCode > span:empty { height: 1.2em; }
+    .sourceCode { overflow: visible; }
+    code.sourceCode > span { color: inherit; text-decoration: inherit; }
+    div.sourceCode { margin: 1em 0; }
+    pre.sourceCode { margin: 0; }
+    @media screen {
+    div.sourceCode { overflow: auto; }
+    }
+    @media print {
+    pre > code.sourceCode { white-space: pre-wrap; }
+    pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+    }
+    pre.numberSource code
+      { counter-reset: source-line 0; }
+    pre.numberSource code > span
+      { position: relative; left: -4em; counter-increment: source-line; }
+    pre.numberSource code > span > a:first-child::before
+      { content: counter(source-line);
+        position: relative; left: -1em; text-align: right; vertical-align: baseline;
+        border: none; display: inline-block;
+        -webkit-touch-callout: none; -webkit-user-select: none;
+        -khtml-user-select: none; -moz-user-select: none;
+        -ms-user-select: none; user-select: none;
+        padding: 0 4px; width: 4em;
+        color: #aaaaaa;
+      }
+    pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+    div.sourceCode
+      {   }
+    @media screen {
+    pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+    }
+    code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+    code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+    code span.at { color: #7d9029; } /* Attribute */
+    code span.bn { color: #40a070; } /* BaseN */
+    code span.bu { color: #008000; } /* BuiltIn */
+    code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+    code span.ch { color: #4070a0; } /* Char */
+    code span.cn { color: #880000; } /* Constant */
+    code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+    code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+    code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+    code span.dt { color: #902000; } /* DataType */
+    code span.dv { color: #40a070; } /* DecVal */
+    code span.er { color: #ff0000; font-weight: bold; } /* Error */
+    code span.ex { } /* Extension */
+    code span.fl { color: #40a070; } /* Float */
+    code span.fu { color: #06287e; } /* Function */
+    code span.im { color: #008000; font-weight: bold; } /* Import */
+    code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+    code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+    code span.op { color: #666666; } /* Operator */
+    code span.ot { color: #007020; } /* Other */
+    code span.pp { color: #bc7a00; } /* Preprocessor */
+    code span.sc { color: #4070a0; } /* SpecialChar */
+    code span.ss { color: #bb6688; } /* SpecialString */
+    code span.st { color: #4070a0; } /* String */
+    code span.va { color: #19177c; } /* Variable */
+    code span.vs { color: #4070a0; } /* VerbatimString */
+    code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+  </style>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@5/github-markdown.min.css" />
+</head>
+<body>
+<header id="title-block-header">
+<h1 class="title">kube-prometheus-stack Scaling Guide and
+values-scaled.yaml</h1>
+</header>
+<h1 id="scaling-kube-prometheus-stack-for-heavy-query-load">Scaling
+kube-prometheus-stack for Heavy Query Load</h1>
+<p>This document explains how to scale the kube-prometheus-stack when
+Prometheus queries regularly exceed 30 seconds and you need higher
+throughput, more memory, and longer timeouts.</p>
+<hr />
+<h2 id="why-queries-take-30-seconds">1. Why Queries Take &gt;30
+Seconds</h2>
+<p>Common causes:</p>
+<table>
+<colgroup>
+<col style="width: 36%" />
+<col style="width: 63%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Cause</th>
+<th>What to do</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>Default query timeout</strong></td>
+<td>Prometheus default is 2m; Grafana datasource often uses 30s.
+Increase both so long-running queries can complete.</td>
+</tr>
+<tr class="even">
+<td><strong>Single replica</strong></td>
+<td>All read load hits one pod. Add replicas (and optionally shards) to
+spread load.</td>
+</tr>
+<tr class="odd">
+<td><strong>Insufficient CPU/memory</strong></td>
+<td>Prometheus is CPU- and memory-heavy for ingestion and queries. Set
+requests/limits.</td>
+</tr>
+<tr class="even">
+<td><strong>Large retention / no retention size cap</strong></td>
+<td>More data = slower queries and more disk. Tune retention and set
+retention size.</td>
+</tr>
+<tr class="odd">
+<td><strong>No persistent storage or small disk</strong></td>
+<td>WAL and TSDB need fast, sufficient storage. Use PVC with adequate
+size and class.</td>
+</tr>
+<tr class="even">
+<td><strong>Too many targets/series</strong></td>
+<td>High cardinality increases memory and query cost. Use metric
+relabeling, drop unused metrics, or sharding.</td>
+</tr>
+<tr class="odd">
+<td><strong>Expensive recording/alert rules</strong></td>
+<td>Heavy rules increase load. Optimize or split evaluation.</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="prometheus-server-scaling">2. Prometheus Server Scaling</h2>
+<h3 id="query-timeouts-and-limits-critical-for-30s-queries">2.1 Query
+timeouts and limits (critical for &gt;30s queries)</h3>
+<p>Configure <strong>QuerySpec</strong> under
+<code>prometheus.prometheusSpec.query</code> so Prometheus allows longer
+and heavier queries:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode yaml"><code class="sourceCode yaml"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">prometheus</span><span class="kw">:</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">prometheusSpec</span><span class="kw">:</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="co">    # Allow queries to run up to 5 minutes (300s) instead of default 2m</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">query</span><span class="kw">:</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="fu">timeout</span><span class="kw">:</span><span class="at"> 5m</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="co">    # Optional: increase max samples per query (default 50000000)</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="co">    # query:</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="co">    #   maxSamples: 100000000</span></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="co">    # Optional: lookback delta for instant queries (default 5m)</span></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a><span class="co">    # query:</span></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a><span class="co">    #   lookbackDelta: 10m</span></span></code></pre></div>
+<ul>
+<li><strong>timeout</strong>: Maximum evaluation time per query. Set to
+<code>5m</code> or higher if you need queries &gt;30s.</li>
+<li><strong>maxSamples</strong>: Raise if you hit “too many samples”
+errors on large range queries.</li>
+<li><strong>lookbackDelta</strong>: Affects instant-query lookback;
+increase only if needed.</li>
+</ul>
+<h3 id="replicas-and-shards">2.2 Replicas and shards</h3>
+<ul>
+<li><strong>Replicas</strong>: Same data on each replica; good for read
+scaling and HA. Queries are spread across replicas by the service.</li>
+</ul>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode yaml"><code class="sourceCode yaml"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">prometheus</span><span class="kw">:</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">prometheusSpec</span><span class="kw">:</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">replicas</span><span class="kw">:</span><span class="at"> </span><span class="dv">2</span></span></code></pre></div>
+<ul>
+<li><strong>Shards</strong>: Split targets across N Prometheus instances
+(each has different data). Use when a single instance has too many
+targets/series. Total pods = <code>replicas × shards</code>. For global
+view you need Thanos (or similar) or remote read.</li>
+</ul>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode yaml"><code class="sourceCode yaml"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">prometheus</span><span class="kw">:</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">prometheusSpec</span><span class="kw">:</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">replicas</span><span class="kw">:</span><span class="at"> </span><span class="dv">1</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">shards</span><span class="kw">:</span><span class="at"> </span><span class="dv">2</span></span></code></pre></div>
+<p>Start with <strong>replicas: 2</strong> for read scaling; add
+<strong>shards</strong> only if one instance is overloaded by scrape
+load.</p>
+<h3 id="resources">2.3 Resources</h3>
+<p>Set requests and limits so Prometheus isn’t throttled or OOMKilled.
+Scale with retention and number of series.</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode yaml"><code class="sourceCode yaml"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">prometheus</span><span class="kw">:</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">prometheusSpec</span><span class="kw">:</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">resources</span><span class="kw">:</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="fu">requests</span><span class="kw">:</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a><span class="at">        </span><span class="fu">cpu</span><span class="kw">:</span><span class="at"> 500m</span></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a><span class="at">        </span><span class="fu">memory</span><span class="kw">:</span><span class="at"> 2Gi</span></span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="fu">limits</span><span class="kw">:</span></span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a><span class="at">        </span><span class="fu">cpu</span><span class="kw">:</span><span class="at"> 2000m</span></span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a><span class="at">        </span><span class="fu">memory</span><span class="kw">:</span><span class="at"> 8Gi</span></span></code></pre></div>
+<p>Rough guidance: 1–2 GB RAM per 100k active series; increase for long
+retention and heavy queries.</p>
+<h3 id="retention-and-storage">2.4 Retention and storage</h3>
+<ul>
+<li><strong>retention</strong>: Lower retention = less data = faster
+queries and less disk. Balance with how far back you need to query.</li>
+<li><strong>retentionSize</strong>: Prevents unbounded disk growth.</li>
+</ul>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode yaml"><code class="sourceCode yaml"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">prometheus</span><span class="kw">:</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">prometheusSpec</span><span class="kw">:</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">retention</span><span class="kw">:</span><span class="at"> 15d</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">retentionSize</span><span class="kw">:</span><span class="at"> </span><span class="st">&quot;45GB&quot;</span></span></code></pre></div>
+<p>Use <strong>storageSpec</strong> so data survives restarts and has
+enough IOPS:</p>
+<div class="sourceCode" id="cb6"><pre
+class="sourceCode yaml"><code class="sourceCode yaml"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="fu">prometheus</span><span class="kw">:</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">prometheusSpec</span><span class="kw">:</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">storageSpec</span><span class="kw">:</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="fu">volumeClaimTemplate</span><span class="kw">:</span></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a><span class="at">        </span><span class="fu">spec</span><span class="kw">:</span></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a><span class="at">          </span><span class="fu">storageClassName</span><span class="kw">:</span><span class="at"> fast-ssd</span><span class="co">   # or your preferred class</span></span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a><span class="at">          </span><span class="fu">accessModes</span><span class="kw">:</span><span class="at"> </span><span class="kw">[</span><span class="st">&quot;ReadWriteOnce&quot;</span><span class="kw">]</span></span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a><span class="at">          </span><span class="fu">resources</span><span class="kw">:</span></span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a><span class="at">            </span><span class="fu">requests</span><span class="kw">:</span></span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a><span class="at">              </span><span class="fu">storage</span><span class="kw">:</span><span class="at"> 50Gi</span></span></code></pre></div>
+<h3 id="scrape-and-evaluation-intervals">2.5 Scrape and evaluation
+intervals</h3>
+<ul>
+<li><strong>scrapeInterval</strong>: Default 30s. Increasing (e.g. 60s)
+reduces scrape load and storage; decreasing increases resolution and
+load.</li>
+<li><strong>evaluationInterval</strong>: How often alert/recording rules
+run. Increasing reduces CPU.</li>
+</ul>
+<div class="sourceCode" id="cb7"><pre
+class="sourceCode yaml"><code class="sourceCode yaml"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="fu">prometheus</span><span class="kw">:</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">prometheusSpec</span><span class="kw">:</span></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">scrapeInterval</span><span class="kw">:</span><span class="at"> 30s</span></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">scrapeTimeout</span><span class="kw">:</span><span class="at"> 10s</span></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">evaluationInterval</span><span class="kw">:</span><span class="at"> 30s</span></span></code></pre></div>
+<h3 id="query-log-optional">2.6 Query log (optional)</h3>
+<p>Useful to see which queries are slow:</p>
+<div class="sourceCode" id="cb8"><pre
+class="sourceCode yaml"><code class="sourceCode yaml"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="fu">prometheus</span><span class="kw">:</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">prometheusSpec</span><span class="kw">:</span></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">queryLogFile</span><span class="kw">:</span><span class="at"> /var/log/prometheus/query.log</span></span></code></pre></div>
+<p>You must add a volume/writeable path for this (e.g. emptyDir or
+PVC).</p>
+<h3 id="pod-placement">2.7 Pod placement</h3>
+<p>Spread Prometheus pods across nodes/zones for HA:</p>
+<div class="sourceCode" id="cb9"><pre
+class="sourceCode yaml"><code class="sourceCode yaml"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="fu">prometheus</span><span class="kw">:</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">prometheusSpec</span><span class="kw">:</span></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">podAntiAffinity</span><span class="kw">:</span><span class="at"> hard</span></span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">podAntiAffinityTopologyKey</span><span class="kw">:</span><span class="at"> kubernetes.io/hostname</span></span></code></pre></div>
+<p>For multi-zone:</p>
+<div class="sourceCode" id="cb10"><pre
+class="sourceCode yaml"><code class="sourceCode yaml"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="fu">prometheus</span><span class="kw">:</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">prometheusSpec</span><span class="kw">:</span></span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">podAntiAffinityTopologyKey</span><span class="kw">:</span><span class="at"> topology.kubernetes.io/zone</span></span></code></pre></div>
+<hr />
+<h2 id="grafana-datasource-timeout">3. Grafana datasource timeout</h2>
+<p>Grafana’s Prometheus datasource has its own timeout. If it’s 30s,
+Grafana will give up before Prometheus. Set it to at least the
+Prometheus query timeout (e.g. 300 seconds for 5m):</p>
+<div class="sourceCode" id="cb11"><pre
+class="sourceCode yaml"><code class="sourceCode yaml"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="fu">grafana</span><span class="kw">:</span></span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">sidecar</span><span class="kw">:</span></span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">datasources</span><span class="kw">:</span></span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="fu">timeout</span><span class="kw">:</span><span class="at"> </span><span class="dv">300</span></span></code></pre></div>
+<p><code>timeout</code> is in seconds. Use the same (or slightly higher)
+value as <code>prometheus.prometheusSpec.query.timeout</code> (e.g. 300
+for 5m).</p>
+<hr />
+<h2 id="prometheus-operator">4. Prometheus Operator</h2>
+<p>The operator reconciles Prometheus CRs. Under heavy or many
+Prometheus instances, give it more resources:</p>
+<div class="sourceCode" id="cb12"><pre
+class="sourceCode yaml"><code class="sourceCode yaml"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="fu">prometheusOperator</span><span class="kw">:</span></span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">resources</span><span class="kw">:</span></span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">requests</span><span class="kw">:</span></span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="fu">cpu</span><span class="kw">:</span><span class="at"> 100m</span></span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="fu">memory</span><span class="kw">:</span><span class="at"> 150Mi</span></span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">limits</span><span class="kw">:</span></span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="fu">cpu</span><span class="kw">:</span><span class="at"> 500m</span></span>
+<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="fu">memory</span><span class="kw">:</span><span class="at"> 500Mi</span></span></code></pre></div>
+<hr />
+<h2 id="alertmanager-optional">5. Alertmanager (optional)</h2>
+<p>For HA and more capacity:</p>
+<div class="sourceCode" id="cb13"><pre
+class="sourceCode yaml"><code class="sourceCode yaml"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="fu">alertmanager</span><span class="kw">:</span></span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">alertmanagerSpec</span><span class="kw">:</span></span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">replicas</span><span class="kw">:</span><span class="at"> </span><span class="dv">2</span></span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">resources</span><span class="kw">:</span></span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="fu">requests</span><span class="kw">:</span></span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a><span class="at">        </span><span class="fu">cpu</span><span class="kw">:</span><span class="at"> 50m</span></span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a><span class="at">        </span><span class="fu">memory</span><span class="kw">:</span><span class="at"> 64Mi</span></span>
+<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="fu">limits</span><span class="kw">:</span></span>
+<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a><span class="at">        </span><span class="fu">cpu</span><span class="kw">:</span><span class="at"> 200m</span></span>
+<span id="cb13-10"><a href="#cb13-10" aria-hidden="true" tabindex="-1"></a><span class="at">        </span><span class="fu">memory</span><span class="kw">:</span><span class="at"> 128Mi</span></span></code></pre></div>
+<hr />
+<h2 id="recording-rules-and-cardinality">6. Recording rules and
+cardinality</h2>
+<ul>
+<li><strong>Recording rules</strong>: Pre-aggregate expensive queries so
+dashboards use the recorded metric instead of the heavy expression. This
+reduces query load and latency.</li>
+<li><strong>Metric relabeling</strong>: Drop high-cardinality or unused
+metrics to reduce series count and memory.</li>
+</ul>
+<p>Reducing cardinality and moving heavy logic into recording rules
+often has the biggest impact on query time.</p>
+<hr />
+<h2 id="thanos-remote-write-optional">7. Thanos / remote write
+(optional)</h2>
+<p>For very large or long-retention setups:</p>
+<ul>
+<li><strong>Thanos sidecar</strong>: Offloads blocks to object storage
+and allows a Thanos Query in front of Prometheus. Use when you need long
+retention and a single query endpoint across shards/replicas.</li>
+<li><strong>Remote write</strong>: Send samples to a dedicated backend
+(e.g. Cortex, Mimir, Thanos Receive) and keep Prometheus retention
+short. Queries then go to the backend.</li>
+</ul>
+<p>These are larger architectural changes; start with the tuning above
+before adding Thanos or remote write.</p>
+<hr />
+<h2 id="checklist-summary">8. Checklist summary</h2>
+<ul class="task-list">
+<li><label><input type="checkbox" />Set
+<code>prometheus.prometheusSpec.query.timeout</code>
+(e.g. <code>5m</code>) so queries can run &gt;30s.</label></li>
+<li><label><input type="checkbox" />Set
+<code>grafana.sidecar.datasources.timeout</code> (e.g. <code>300</code>)
+to match.</label></li>
+<li><label><input type="checkbox" />Set
+<code>prometheus.prometheusSpec.resources</code> (CPU and
+memory).</label></li>
+<li><label><input type="checkbox" />Set
+<code>prometheus.prometheusSpec.retention</code> and
+<code>retentionSize</code>.</label></li>
+<li><label><input type="checkbox" />Configure
+<code>prometheus.prometheusSpec.storageSpec</code> with adequate PVC
+size and class.</label></li>
+<li><label><input type="checkbox" />Consider
+<code>prometheus.prometheusSpec.replicas: 2</code> (and optionally
+shards).</label></li>
+<li><label><input type="checkbox" />Optionally set
+<code>prometheus.prometheusSpec.podAntiAffinity</code> for
+HA.</label></li>
+<li><label><input type="checkbox" />Tune scrape/evaluation intervals and
+optimize recording rules/cardinality as needed.</label></li>
+</ul>
+<hr />
+<h2 id="applying-the-sample-values">9. Applying the sample values</h2>
+<p>The <strong>values-scaled.yaml</strong> overlay below contains a
+minimal overlay focused on scaling and longer query timeouts. Use it on
+top of the default values:</p>
+<div class="sourceCode" id="cb14"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="ex">helm</span> upgrade <span class="at">--install</span> kube-prometheus-stack . <span class="dt">\</span></span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">-f</span> values.yaml <span class="dt">\</span></span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">-f</span> values-scaled.yaml <span class="dt">\</span></span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">-n</span> monitoring</span></code></pre></div>
+<p>Adjust <code>values-scaled.yaml</code> for your cluster size, storage
+class, and retention needs. After upgrading, monitor Prometheus and
+Grafana for CPU, memory, and query latency.</p>
+<hr />
+<h1 id="appendix-values-scaled.yaml-full-file">Appendix:
+values-scaled.yaml (full file)</h1>
+<div class="sourceCode" id="cb15"><pre
+class="sourceCode yaml"><code class="sourceCode yaml"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="co"># values-scaled.yaml — overlay for scaling kube-prometheus-stack</span></span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a><span class="co"># Use with: helm upgrade -f values.yaml -f values-scaled.yaml ...</span></span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Addresses: queries &gt;30s, higher load, and better availability.</span></span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a><span class="co"># --- Prometheus Server ---</span></span>
+<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a><span class="fu">prometheus</span><span class="kw">:</span></span>
+<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">prometheusSpec</span><span class="kw">:</span></span>
+<span id="cb15-8"><a href="#cb15-8" aria-hidden="true" tabindex="-1"></a><span class="co">    # Allow long-running queries (e.g. 5m); default is 2m</span></span>
+<span id="cb15-9"><a href="#cb15-9" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">query</span><span class="kw">:</span></span>
+<span id="cb15-10"><a href="#cb15-10" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="fu">timeout</span><span class="kw">:</span><span class="at"> 5m</span></span>
+<span id="cb15-11"><a href="#cb15-11" aria-hidden="true" tabindex="-1"></a><span class="co">      # Uncomment if you hit &quot;max samples&quot; limits on heavy range queries:</span></span>
+<span id="cb15-12"><a href="#cb15-12" aria-hidden="true" tabindex="-1"></a><span class="co">      # maxSamples: 100000000</span></span>
+<span id="cb15-13"><a href="#cb15-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-14"><a href="#cb15-14" aria-hidden="true" tabindex="-1"></a><span class="co">    # Read scaling: 2 replicas share query load (same data on each)</span></span>
+<span id="cb15-15"><a href="#cb15-15" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">replicas</span><span class="kw">:</span><span class="at"> </span><span class="dv">2</span></span>
+<span id="cb15-16"><a href="#cb15-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-17"><a href="#cb15-17" aria-hidden="true" tabindex="-1"></a><span class="co">    # Retention and size cap</span></span>
+<span id="cb15-18"><a href="#cb15-18" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">retention</span><span class="kw">:</span><span class="at"> 15d</span></span>
+<span id="cb15-19"><a href="#cb15-19" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">retentionSize</span><span class="kw">:</span><span class="at"> </span><span class="st">&quot;45GB&quot;</span></span>
+<span id="cb15-20"><a href="#cb15-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-21"><a href="#cb15-21" aria-hidden="true" tabindex="-1"></a><span class="co">    # Scrape/evaluation (adjust if you need different resolution)</span></span>
+<span id="cb15-22"><a href="#cb15-22" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">scrapeInterval</span><span class="kw">:</span><span class="at"> 30s</span></span>
+<span id="cb15-23"><a href="#cb15-23" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">scrapeTimeout</span><span class="kw">:</span><span class="at"> 10s</span></span>
+<span id="cb15-24"><a href="#cb15-24" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">evaluationInterval</span><span class="kw">:</span><span class="at"> 30s</span></span>
+<span id="cb15-25"><a href="#cb15-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-26"><a href="#cb15-26" aria-hidden="true" tabindex="-1"></a><span class="co">    # Resources — scale up with series count and retention</span></span>
+<span id="cb15-27"><a href="#cb15-27" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">resources</span><span class="kw">:</span></span>
+<span id="cb15-28"><a href="#cb15-28" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="fu">requests</span><span class="kw">:</span></span>
+<span id="cb15-29"><a href="#cb15-29" aria-hidden="true" tabindex="-1"></a><span class="at">        </span><span class="fu">cpu</span><span class="kw">:</span><span class="at"> 500m</span></span>
+<span id="cb15-30"><a href="#cb15-30" aria-hidden="true" tabindex="-1"></a><span class="at">        </span><span class="fu">memory</span><span class="kw">:</span><span class="at"> 2Gi</span></span>
+<span id="cb15-31"><a href="#cb15-31" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="fu">limits</span><span class="kw">:</span></span>
+<span id="cb15-32"><a href="#cb15-32" aria-hidden="true" tabindex="-1"></a><span class="at">        </span><span class="fu">cpu</span><span class="kw">:</span><span class="at"> 2000m</span></span>
+<span id="cb15-33"><a href="#cb15-33" aria-hidden="true" tabindex="-1"></a><span class="at">        </span><span class="fu">memory</span><span class="kw">:</span><span class="at"> 8Gi</span></span>
+<span id="cb15-34"><a href="#cb15-34" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-35"><a href="#cb15-35" aria-hidden="true" tabindex="-1"></a><span class="co">    # Persistent storage — set storageClassName to your fast disk class</span></span>
+<span id="cb15-36"><a href="#cb15-36" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">storageSpec</span><span class="kw">:</span></span>
+<span id="cb15-37"><a href="#cb15-37" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="fu">volumeClaimTemplate</span><span class="kw">:</span></span>
+<span id="cb15-38"><a href="#cb15-38" aria-hidden="true" tabindex="-1"></a><span class="at">        </span><span class="fu">spec</span><span class="kw">:</span></span>
+<span id="cb15-39"><a href="#cb15-39" aria-hidden="true" tabindex="-1"></a><span class="at">          </span><span class="fu">storageClassName</span><span class="kw">:</span><span class="at"> </span><span class="st">&quot;&quot;</span><span class="co">   # e.g. fast-ssd, gp3, standard</span></span>
+<span id="cb15-40"><a href="#cb15-40" aria-hidden="true" tabindex="-1"></a><span class="at">          </span><span class="fu">accessModes</span><span class="kw">:</span><span class="at"> </span><span class="kw">[</span><span class="st">&quot;ReadWriteOnce&quot;</span><span class="kw">]</span></span>
+<span id="cb15-41"><a href="#cb15-41" aria-hidden="true" tabindex="-1"></a><span class="at">          </span><span class="fu">resources</span><span class="kw">:</span></span>
+<span id="cb15-42"><a href="#cb15-42" aria-hidden="true" tabindex="-1"></a><span class="at">            </span><span class="fu">requests</span><span class="kw">:</span></span>
+<span id="cb15-43"><a href="#cb15-43" aria-hidden="true" tabindex="-1"></a><span class="at">              </span><span class="fu">storage</span><span class="kw">:</span><span class="at"> 50Gi</span></span>
+<span id="cb15-44"><a href="#cb15-44" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-45"><a href="#cb15-45" aria-hidden="true" tabindex="-1"></a><span class="co">    # Spread replicas across nodes</span></span>
+<span id="cb15-46"><a href="#cb15-46" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">podAntiAffinity</span><span class="kw">:</span><span class="at"> soft</span></span>
+<span id="cb15-47"><a href="#cb15-47" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">podAntiAffinityTopologyKey</span><span class="kw">:</span><span class="at"> kubernetes.io/hostname</span></span>
+<span id="cb15-48"><a href="#cb15-48" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-49"><a href="#cb15-49" aria-hidden="true" tabindex="-1"></a><span class="co">    # Optional: enable query logging to debug slow queries (ensure volume exists)</span></span>
+<span id="cb15-50"><a href="#cb15-50" aria-hidden="true" tabindex="-1"></a><span class="co">    # queryLogFile: /var/log/prometheus/query.log</span></span>
+<span id="cb15-51"><a href="#cb15-51" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-52"><a href="#cb15-52" aria-hidden="true" tabindex="-1"></a><span class="co"># --- Grafana datasource timeout (must be &gt;= Prometheus query timeout) ---</span></span>
+<span id="cb15-53"><a href="#cb15-53" aria-hidden="true" tabindex="-1"></a><span class="co"># Timeout in seconds; 300 = 5 minutes to match query.timeout: 5m</span></span>
+<span id="cb15-54"><a href="#cb15-54" aria-hidden="true" tabindex="-1"></a><span class="fu">grafana</span><span class="kw">:</span></span>
+<span id="cb15-55"><a href="#cb15-55" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">sidecar</span><span class="kw">:</span></span>
+<span id="cb15-56"><a href="#cb15-56" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">datasources</span><span class="kw">:</span></span>
+<span id="cb15-57"><a href="#cb15-57" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="fu">timeout</span><span class="kw">:</span><span class="at"> </span><span class="dv">300</span></span>
+<span id="cb15-58"><a href="#cb15-58" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-59"><a href="#cb15-59" aria-hidden="true" tabindex="-1"></a><span class="co"># --- Prometheus Operator (optional, for larger clusters) ---</span></span>
+<span id="cb15-60"><a href="#cb15-60" aria-hidden="true" tabindex="-1"></a><span class="fu">prometheusOperator</span><span class="kw">:</span></span>
+<span id="cb15-61"><a href="#cb15-61" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">resources</span><span class="kw">:</span></span>
+<span id="cb15-62"><a href="#cb15-62" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">requests</span><span class="kw">:</span></span>
+<span id="cb15-63"><a href="#cb15-63" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="fu">cpu</span><span class="kw">:</span><span class="at"> 100m</span></span>
+<span id="cb15-64"><a href="#cb15-64" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="fu">memory</span><span class="kw">:</span><span class="at"> 150Mi</span></span>
+<span id="cb15-65"><a href="#cb15-65" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">limits</span><span class="kw">:</span></span>
+<span id="cb15-66"><a href="#cb15-66" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="fu">cpu</span><span class="kw">:</span><span class="at"> 500m</span></span>
+<span id="cb15-67"><a href="#cb15-67" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="fu">memory</span><span class="kw">:</span><span class="at"> 500Mi</span></span>
+<span id="cb15-68"><a href="#cb15-68" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-69"><a href="#cb15-69" aria-hidden="true" tabindex="-1"></a><span class="co"># --- Alertmanager HA (optional) ---</span></span>
+<span id="cb15-70"><a href="#cb15-70" aria-hidden="true" tabindex="-1"></a><span class="fu">alertmanager</span><span class="kw">:</span></span>
+<span id="cb15-71"><a href="#cb15-71" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">alertmanagerSpec</span><span class="kw">:</span></span>
+<span id="cb15-72"><a href="#cb15-72" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">replicas</span><span class="kw">:</span><span class="at"> </span><span class="dv">2</span></span>
+<span id="cb15-73"><a href="#cb15-73" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">resources</span><span class="kw">:</span></span>
+<span id="cb15-74"><a href="#cb15-74" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="fu">requests</span><span class="kw">:</span></span>
+<span id="cb15-75"><a href="#cb15-75" aria-hidden="true" tabindex="-1"></a><span class="at">        </span><span class="fu">cpu</span><span class="kw">:</span><span class="at"> 50m</span></span>
+<span id="cb15-76"><a href="#cb15-76" aria-hidden="true" tabindex="-1"></a><span class="at">        </span><span class="fu">memory</span><span class="kw">:</span><span class="at"> 64Mi</span></span>
+<span id="cb15-77"><a href="#cb15-77" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="fu">limits</span><span class="kw">:</span></span>
+<span id="cb15-78"><a href="#cb15-78" aria-hidden="true" tabindex="-1"></a><span class="at">        </span><span class="fu">cpu</span><span class="kw">:</span><span class="at"> 200m</span></span>
+<span id="cb15-79"><a href="#cb15-79" aria-hidden="true" tabindex="-1"></a><span class="at">        </span><span class="fu">memory</span><span class="kw">:</span><span class="at"> 128Mi</span></span></code></pre></div>
+</body>
+</html>
