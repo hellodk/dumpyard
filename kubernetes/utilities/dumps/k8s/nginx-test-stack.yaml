@@ -159,7 +159,7 @@ spec:
         - name: AVIKA_STUB_STATUS_URL
           value: "http://127.0.0.1:8080/nginx_status"
         - name: AVIKA_GATEWAY_ADDR
-          value: "avika-gateway.avika.svc.cluster.local:5030"
+          value: "avika-gateway.avika.svc.cluster.local:5020,192.168.1.10:5020"
         ports:
         - containerPort: 80
           name: http
