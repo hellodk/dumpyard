@@ -28,7 +28,7 @@ data:
       "graphTooltip": 0,
       "id": null,
       "links": [],
-      "description": "Vivid sizing tables: neon accents, pastel metric columns, gauges on waste & PVC fill.",
+      "description": "Vivid sizing tables: neon accents, pastel metric columns, gauges on over-provisioning & PVC fill.",
       "panels": [
         {
           "collapsed": false,
@@ -71,13 +71,6 @@ data:
                   { "color": "#EC489977", "value": 1.5 }
                 ] } }
               ] },
-              { "matcher": { "id": "byName", "options": "cpu_request_cores" }, "properties": [
-                { "id": "unit", "value": "cores" },
-                { "id": "custom.cellOptions", "value": { "type": "color-background" } },
-                { "id": "thresholds", "value": { "mode": "absolute", "steps": [
-                  { "color": "#6366F144", "value": null }
-                ] } }
-              ] },
               { "matcher": { "id": "byName", "options": "cpu_limit_cores" }, "properties": [
                 { "id": "unit", "value": "cores" },
                 { "id": "custom.cellOptions", "value": { "type": "color-background" } },
@@ -85,16 +78,7 @@ data:
                   { "color": "#F59E0B44", "value": null }
                 ] } }
               ] },
-              { "matcher": { "id": "byName", "options": "cpu_delta_req_minus_usage_cores" }, "properties": [
-                { "id": "unit", "value": "cores" },
-                { "id": "custom.cellOptions", "value": { "type": "color-text" } },
-                { "id": "thresholds", "value": { "mode": "absolute", "steps": [
-                  { "color": "#F43F5E", "value": null },
-                  { "color": "#FBBF24", "value": 0 },
-                  { "color": "#34D399", "value": 0.001 }
-                ] } }
-              ] },
-              { "matcher": { "id": "byName", "options": "cpu_wasted_cores" }, "properties": [
+              { "matcher": { "id": "byName", "options": "cpu_over_provisioned_cores" }, "properties": [
                 { "id": "unit", "value": "cores" },
                 { "id": "custom.cellOptions", "value": { "type": "color-background" } },
                 { "id": "thresholds", "value": { "mode": "absolute", "steps": [
@@ -103,7 +87,7 @@ data:
                   { "color": "#EF444466", "value": 0.5 }
                 ] } }
               ] },
-              { "matcher": { "id": "byName", "options": "cpu_wasted_percent_of_request" }, "properties": [
+              { "matcher": { "id": "byName", "options": "cpu_over_provisioned_percent_of_request" }, "properties": [
                 { "id": "unit", "value": "percent" },
                 { "id": "min", "value": 0 },
                 { "id": "max", "value": 100 },
@@ -145,7 +129,7 @@ data:
             },
             {
               "editorMode": "code",
-              "expr": "sum by (pod) (kube_pod_container_resource_requests{namespace=~\"$namespace\",pod=~\"$pod\",resource=\"cpu\",unit=\"core\"}) - sum by (pod) (rate(container_cpu_usage_seconds_total{namespace=~\"$namespace\",pod=~\"$pod\",container!=\"\",container!=\"POD\"}[$__rate_interval]))",
+              "expr": "clamp_min(sum by (pod) (kube_pod_container_resource_requests{namespace=~\"$namespace\",pod=~\"$pod\",resource=\"cpu\",unit=\"core\"}) - sum by (pod) (rate(container_cpu_usage_seconds_total{namespace=~\"$namespace\",pod=~\"$pod\",container!=\"\",container!=\"POD\"}[$__rate_interval])), 0)",
               "format": "table",
               "instant": true,
               "legendFormat": "{{pod}}",
@@ -153,19 +137,11 @@ data:
             },
             {
               "editorMode": "code",
-              "expr": "clamp_min(sum by (pod) (kube_pod_container_resource_requests{namespace=~\"$namespace\",pod=~\"$pod\",resource=\"cpu\",unit=\"core\"}) - sum by (pod) (rate(container_cpu_usage_seconds_total{namespace=~\"$namespace\",pod=~\"$pod\",container!=\"\",container!=\"POD\"}[$__rate_interval])), 0)",
-              "format": "table",
-              "instant": true,
-              "legendFormat": "{{pod}}",
-              "refId": "E"
-            },
-            {
-              "editorMode": "code",
               "expr": "100 * clamp_min(sum by (pod) (kube_pod_container_resource_requests{namespace=~\"$namespace\",pod=~\"$pod\",resource=\"cpu\",unit=\"core\"}) - sum by (pod) (rate(container_cpu_usage_seconds_total{namespace=~\"$namespace\",pod=~\"$pod\",container!=\"\",container!=\"POD\"}[$__rate_interval])), 0) / clamp_min(sum by (pod) (kube_pod_container_resource_requests{namespace=~\"$namespace\",pod=~\"$pod\",resource=\"cpu\",unit=\"core\"}), 0.001)",
               "format": "table",
               "instant": true,
               "legendFormat": "{{pod}}",
-              "refId": "F"
+              "refId": "E"
             }
           ],
           "transformations": [
@@ -174,19 +150,18 @@ data:
               "id": "organize",
               "options": {
                 "excludeByName": { "Time": true },
-                "indexByName": { "pod": 0, "Value #A": 1, "Value #B": 2, "Value #C": 3, "Value #D": 4, "Value #E": 5, "Value #F": 6 },
+                "excludeByName": { "Time": true, "Value #B": true },
+                "indexByName": { "pod": 0, "Value #A": 1, "Value #C": 2, "Value #D": 3, "Value #E": 4 },
                 "renameByName": {
                   "Value #A": "cpu_usage_cores",
-                  "Value #B": "cpu_request_cores",
                   "Value #C": "cpu_limit_cores",
-                  "Value #D": "cpu_delta_req_minus_usage_cores",
-                  "Value #E": "cpu_wasted_cores",
-                  "Value #F": "cpu_wasted_percent_of_request"
+                  "Value #D": "cpu_over_provisioned_cores",
+                  "Value #E": "cpu_over_provisioned_percent_of_request"
                 }
               }
             }
           ],
-          "title": "CPU — usage / request / limit / delta / waste (per pod)",
+          "title": "CPU — usage / limit / over-provisioned (per pod)",
           "type": "table"
         },
         {
@@ -222,13 +197,6 @@ data:
                   { "color": "#F472B666", "value": 2147483648 }
                 ] } }
               ] },
-              { "matcher": { "id": "byName", "options": "mem_request" }, "properties": [
-                { "id": "unit", "value": "bytes" },
-                { "id": "custom.cellOptions", "value": { "type": "color-background" } },
-                { "id": "thresholds", "value": { "mode": "absolute", "steps": [
-                  { "color": "#818CF844", "value": null }
-                ] } }
-              ] },
               { "matcher": { "id": "byName", "options": "mem_limit" }, "properties": [
                 { "id": "unit", "value": "bytes" },
                 { "id": "custom.cellOptions", "value": { "type": "color-background" } },
@@ -236,16 +204,7 @@ data:
                   { "color": "#FB923C44", "value": null }
                 ] } }
               ] },
-              { "matcher": { "id": "byName", "options": "mem_delta_req_minus_usage" }, "properties": [
-                { "id": "unit", "value": "bytes" },
-                { "id": "custom.cellOptions", "value": { "type": "color-text" } },
-                { "id": "thresholds", "value": { "mode": "absolute", "steps": [
-                  { "color": "#F43F5E", "value": null },
-                  { "color": "#FBBF24", "value": 0 },
-                  { "color": "#34D399", "value": 1 }
-                ] } }
-              ] },
-              { "matcher": { "id": "byName", "options": "mem_wasted_bytes" }, "properties": [
+              { "matcher": { "id": "byName", "options": "mem_over_provisioned_bytes" }, "properties": [
                 { "id": "unit", "value": "bytes" },
                 { "id": "custom.cellOptions", "value": { "type": "color-background" } },
                 { "id": "thresholds", "value": { "mode": "absolute", "steps": [
@@ -254,7 +213,7 @@ data:
                   { "color": "#E11D4866", "value": 1073741824 }
                 ] } }
               ] },
-              { "matcher": { "id": "byName", "options": "mem_wasted_percent_of_request" }, "properties": [
+              { "matcher": { "id": "byName", "options": "mem_over_provisioned_percent_of_request" }, "properties": [
                 { "id": "unit", "value": "percent" },
                 { "id": "min", "value": 0 },
                 { "id": "max", "value": 100 },
@@ -296,7 +255,7 @@ data:
             },
             {
               "editorMode": "code",
-              "expr": "sum by (pod) (kube_pod_container_resource_requests{namespace=~\"$namespace\",pod=~\"$pod\",resource=\"memory\",unit=\"byte\"}) - sum by (pod) (container_memory_working_set_bytes{namespace=~\"$namespace\",pod=~\"$pod\",container!=\"\",container!=\"POD\"})",
+              "expr": "clamp_min(sum by (pod) (kube_pod_container_resource_requests{namespace=~\"$namespace\",pod=~\"$pod\",resource=\"memory\",unit=\"byte\"}) - sum by (pod) (container_memory_working_set_bytes{namespace=~\"$namespace\",pod=~\"$pod\",container!=\"\",container!=\"POD\"}), 0)",
               "format": "table",
               "instant": true,
               "legendFormat": "{{pod}}",
@@ -304,19 +263,11 @@ data:
             },
             {
               "editorMode": "code",
-              "expr": "clamp_min(sum by (pod) (kube_pod_container_resource_requests{namespace=~\"$namespace\",pod=~\"$pod\",resource=\"memory\",unit=\"byte\"}) - sum by (pod) (container_memory_working_set_bytes{namespace=~\"$namespace\",pod=~\"$pod\",container!=\"\",container!=\"POD\"}), 0)",
-              "format": "table",
-              "instant": true,
-              "legendFormat": "{{pod}}",
-              "refId": "E"
-            },
-            {
-              "editorMode": "code",
               "expr": "100 * clamp_min(sum by (pod) (kube_pod_container_resource_requests{namespace=~\"$namespace\",pod=~\"$pod\",resource=\"memory\",unit=\"byte\"}) - sum by (pod) (container_memory_working_set_bytes{namespace=~\"$namespace\",pod=~\"$pod\",container!=\"\",container!=\"POD\"}), 0) / clamp_min(sum by (pod) (kube_pod_container_resource_requests{namespace=~\"$namespace\",pod=~\"$pod\",resource=\"memory\",unit=\"byte\"}), 1)",
               "format": "table",
               "instant": true,
               "legendFormat": "{{pod}}",
-              "refId": "F"
+              "refId": "E"
             }
           ],
           "transformations": [
@@ -324,20 +275,18 @@ data:
             {
               "id": "organize",
               "options": {
-                "excludeByName": { "Time": true },
-                "indexByName": { "pod": 0, "Value #A": 1, "Value #B": 2, "Value #C": 3, "Value #D": 4, "Value #E": 5, "Value #F": 6 },
+                "excludeByName": { "Time": true, "Value #B": true },
+                "indexByName": { "pod": 0, "Value #A": 1, "Value #C": 2, "Value #D": 3, "Value #E": 4 },
                 "renameByName": {
                   "Value #A": "mem_usage_working_set",
-                  "Value #B": "mem_request",
                   "Value #C": "mem_limit",
-                  "Value #D": "mem_delta_req_minus_usage",
-                  "Value #E": "mem_wasted_bytes",
-                  "Value #F": "mem_wasted_percent_of_request"
+                  "Value #D": "mem_over_provisioned_bytes",
+                  "Value #E": "mem_over_provisioned_percent_of_request"
                 }
               }
             }
           ],
-          "title": "Memory — usage / request / limit / delta / waste (per pod)",
+          "title": "Memory — usage / limit / over-provisioned (per pod)",
           "type": "table"
         },
         {
@@ -372,34 +321,26 @@ data:
                   { "color": "#F9731655", "value": 53687091200 }
                 ] } }
               ] },
-              { "matcher": { "id": "byName", "options": "pvc_capacity_bytes" }, "properties": [
+              { "matcher": { "id": "byName", "options": "pvc_over_provisioned_bytes" }, "properties": [
                 { "id": "unit", "value": "bytes" },
                 { "id": "custom.cellOptions", "value": { "type": "color-background" } },
                 { "id": "thresholds", "value": { "mode": "absolute", "steps": [
-                  { "color": "#64748B44", "value": null }
+                  { "color": "#22C55E22", "value": null },
+                  { "color": "#EAB30844", "value": 1073741824 },
+                  { "color": "#F9731655", "value": 53687091200 }
                 ] } }
               ] },
-              { "matcher": { "id": "byName", "options": "pvc_available_bytes" }, "properties": [
-                { "id": "unit", "value": "bytes" },
-                { "id": "custom.cellOptions", "value": { "type": "color-background" } },
-                { "id": "thresholds", "value": { "mode": "absolute", "steps": [
-                  { "color": "#DC262655", "value": null },
-                  { "color": "#FBBF2244", "value": 104857600 },
-                  { "color": "#22C55E55", "value": 1073741824 }
-                ] } }
-              ] },
-              { "matcher": { "id": "byName", "options": "pvc_used_percent" }, "properties": [
+              { "matcher": { "id": "byName", "options": "pvc_over_provisioned_percent_of_capacity" }, "properties": [
                 { "id": "unit", "value": "percent" },
                 { "id": "min", "value": 0 },
                 { "id": "max", "value": 100 },
                 { "id": "custom.cellOptions", "value": { "type": "gauge", "mode": "lcd", "valueDisplayMode": "color" } },
                 { "id": "thresholds", "value": { "mode": "absolute", "steps": [
-                  { "color": "#0D9488", "value": null },
-                  { "color": "#22C55E", "value": 40 },
-                  { "color": "#EAB308", "value": 60 },
-                  { "color": "#F97316", "value": 75 },
-                  { "color": "#DC2626", "value": 85 },
-                  { "color": "#7F1D1D", "value": 95 }
+                  { "color": "#047857", "value": null },
+                  { "color": "#84CC16", "value": 15 },
+                  { "color": "#EAB308", "value": 30 },
+                  { "color": "#EA580C", "value": 50 },
+                  { "color": "#BE123C", "value": 70 }
                 ] } }
               ] }
             ]
@@ -423,7 +364,7 @@ data:
             },
             {
               "editorMode": "code",
-              "expr": "kubelet_volume_stats_available_bytes{namespace=~\"$namespace\",persistentvolumeclaim=~\"$pvc\"}",
+              "expr": "clamp_min(kubelet_volume_stats_capacity_bytes{namespace=~\"$namespace\",persistentvolumeclaim=~\"$pvc\"} - kubelet_volume_stats_used_bytes{namespace=~\"$namespace\",persistentvolumeclaim=~\"$pvc\"}, 0)",
               "format": "table",
               "instant": true,
               "legendFormat": "{{persistentvolumeclaim}}",
@@ -431,7 +372,7 @@ data:
             },
             {
               "editorMode": "code",
-              "expr": "100 * (kubelet_volume_stats_used_bytes{namespace=~\"$namespace\",persistentvolumeclaim=~\"$pvc\"} / clamp_min(kubelet_volume_stats_capacity_bytes{namespace=~\"$namespace\",persistentvolumeclaim=~\"$pvc\"}, 1))",
+              "expr": "100 * clamp_min(kubelet_volume_stats_capacity_bytes{namespace=~\"$namespace\",persistentvolumeclaim=~\"$pvc\"} - kubelet_volume_stats_used_bytes{namespace=~\"$namespace\",persistentvolumeclaim=~\"$pvc\"}, 0) / clamp_min(kubelet_volume_stats_capacity_bytes{namespace=~\"$namespace\",persistentvolumeclaim=~\"$pvc\"}, 1)",
               "format": "table",
               "instant": true,
               "legendFormat": "{{persistentvolumeclaim}}",
@@ -443,19 +384,18 @@ data:
             {
               "id": "organize",
               "options": {
-                "excludeByName": { "Time": true },
-                "indexByName": { "persistentvolumeclaim": 0, "Value #A": 1, "Value #B": 2, "Value #C": 3, "Value #D": 4 },
+                "excludeByName": { "Time": true, "Value #B": true },
+                "indexByName": { "persistentvolumeclaim": 0, "Value #A": 1, "Value #C": 2, "Value #D": 3 },
                 "renameByName": {
                   "persistentvolumeclaim": "pvc",
                   "Value #A": "pvc_used_bytes",
-                  "Value #B": "pvc_capacity_bytes",
-                  "Value #C": "pvc_available_bytes",
-                  "Value #D": "pvc_used_percent"
+                  "Value #C": "pvc_over_provisioned_bytes",
+                  "Value #D": "pvc_over_provisioned_percent_of_capacity"
                 }
               }
             }
           ],
-          "title": "Volumes — PVC used / capacity / available / % fill",
+          "title": "Volumes — PVC used / over-provisioned (per PVC)",
           "type": "table"
         }
       ],
@@ -466,7 +406,8 @@ data:
       "templating": {
         "list": [
           {
-            "current": { "selected": false, "text": "default", "value": "default" },
+            "allValue": ".*",
+            "current": { "selected": true, "text": "All", "value": "$__all" },
             "datasource": { "type": "prometheus", "uid": "prometheus" },
             "definition": "label_values(kube_pod_info, namespace)",
             "hide": 0,
