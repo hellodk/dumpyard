@@ -1,0 +1,520 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-dashboard-pod-resources-sizing-tables
+  namespace: default
+  labels:
+    grafana_dashboard: "1"
+  annotations:
+    grafana_folder: Performance
+data:
+  pod-resources-sizing-tables.json: |-
+    {
+      "annotations": {
+        "list": [
+          {
+            "builtIn": 1,
+            "datasource": { "type": "grafana", "uid": "-- Grafana --" },
+            "enable": true,
+            "hide": true,
+            "iconColor": "rgba(0, 211, 255, 1)",
+            "name": "Annotations & Alerts",
+            "type": "dashboard"
+          }
+        ]
+      },
+      "editable": true,
+      "fiscalYearStartMonth": 0,
+      "graphTooltip": 0,
+      "id": null,
+      "links": [],
+      "description": "Vivid sizing tables: neon accents, pastel metric columns, gauges on waste & PVC fill.",
+      "panels": [
+        {
+          "collapsed": false,
+          "gridPos": { "h": 1, "w": 24, "x": 0, "y": 0 },
+          "id": 1,
+          "panels": [],
+          "title": "Sizing tables — CPU / Memory / Volumes",
+          "type": "row"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "gridPos": { "h": 9, "w": 24, "x": 0, "y": 1 },
+          "id": 2,
+          "options": {
+            "cellHeight": "lg",
+            "footer": { "countRows": false, "fields": "", "reducer": ["sum"], "show": false },
+            "frameIndex": 0,
+            "showHeader": true,
+            "sortBy": [{ "desc": true, "displayName": "cpu_usage_cores" }]
+          },
+          "fieldConfig": {
+            "defaults": {
+              "color": { "mode": "thresholds" },
+              "custom": { "align": "auto", "cellOptions": { "type": "auto" }, "filterable": false, "inspect": false },
+              "mappings": [],
+              "thresholds": { "mode": "absolute", "steps": [{ "color": "rgba(0,0,0,0)", "value": null }] }
+            },
+            "overrides": [
+              { "matcher": { "id": "byName", "options": "pod" }, "properties": [
+                { "id": "color", "value": { "fixedColor": "#22D3EE", "mode": "fixed" } },
+                { "id": "custom.width", "value": 220 }
+              ] },
+              { "matcher": { "id": "byName", "options": "cpu_usage_cores" }, "properties": [
+                { "id": "unit", "value": "cores" },
+                { "id": "custom.cellOptions", "value": { "type": "color-background" } },
+                { "id": "thresholds", "value": { "mode": "absolute", "steps": [
+                  { "color": "#0EA5E933", "value": null },
+                  { "color": "#06B6D455", "value": 0.01 },
+                  { "color": "#8B5CF666", "value": 0.5 },
+                  { "color": "#EC489977", "value": 1.5 }
+                ] } }
+              ] },
+              { "matcher": { "id": "byName", "options": "cpu_request_cores" }, "properties": [
+                { "id": "unit", "value": "cores" },
+                { "id": "custom.cellOptions", "value": { "type": "color-background" } },
+                { "id": "thresholds", "value": { "mode": "absolute", "steps": [
+                  { "color": "#6366F144", "value": null }
+                ] } }
+              ] },
+              { "matcher": { "id": "byName", "options": "cpu_limit_cores" }, "properties": [
+                { "id": "unit", "value": "cores" },
+                { "id": "custom.cellOptions", "value": { "type": "color-background" } },
+                { "id": "thresholds", "value": { "mode": "absolute", "steps": [
+                  { "color": "#F59E0B44", "value": null }
+                ] } }
+              ] },
+              { "matcher": { "id": "byName", "options": "cpu_delta_req_minus_usage_cores" }, "properties": [
+                { "id": "unit", "value": "cores" },
+                { "id": "custom.cellOptions", "value": { "type": "color-text" } },
+                { "id": "thresholds", "value": { "mode": "absolute", "steps": [
+                  { "color": "#F43F5E", "value": null },
+                  { "color": "#FBBF24", "value": 0 },
+                  { "color": "#34D399", "value": 0.001 }
+                ] } }
+              ] },
+              { "matcher": { "id": "byName", "options": "cpu_wasted_cores" }, "properties": [
+                { "id": "unit", "value": "cores" },
+                { "id": "custom.cellOptions", "value": { "type": "color-background" } },
+                { "id": "thresholds", "value": { "mode": "absolute", "steps": [
+                  { "color": "#10B98133", "value": null },
+                  { "color": "#F59E0B55", "value": 0.1 },
+                  { "color": "#EF444466", "value": 0.5 }
+                ] } }
+              ] },
+              { "matcher": { "id": "byName", "options": "cpu_wasted_percent_of_request" }, "properties": [
+                { "id": "unit", "value": "percent" },
+                { "id": "min", "value": 0 },
+                { "id": "max", "value": 100 },
+                { "id": "custom.cellOptions", "value": { "type": "gauge", "mode": "lcd", "valueDisplayMode": "color" } },
+                { "id": "thresholds", "value": { "mode": "absolute", "steps": [
+                  { "color": "#047857", "value": null },
+                  { "color": "#84CC16", "value": 15 },
+                  { "color": "#EAB308", "value": 30 },
+                  { "color": "#EA580C", "value": 50 },
+                  { "color": "#BE123C", "value": 70 }
+                ] } }
+              ] }
+            ]
+          },
+          "targets": [
+            {
+              "editorMode": "code",
+              "expr": "sum by (pod) (rate(container_cpu_usage_seconds_total{namespace=~\"$namespace\",pod=~\"$pod\",container!=\"\",container!=\"POD\"}[$__rate_interval]))",
+              "format": "table",
+              "instant": true,
+              "legendFormat": "{{pod}}",
+              "refId": "A"
+            },
+            {
+              "editorMode": "code",
+              "expr": "sum by (pod) (kube_pod_container_resource_requests{namespace=~\"$namespace\",pod=~\"$pod\",resource=\"cpu\",unit=\"core\"})",
+              "format": "table",
+              "instant": true,
+              "legendFormat": "{{pod}}",
+              "refId": "B"
+            },
+            {
+              "editorMode": "code",
+              "expr": "sum by (pod) (kube_pod_container_resource_limits{namespace=~\"$namespace\",pod=~\"$pod\",resource=\"cpu\",unit=\"core\"})",
+              "format": "table",
+              "instant": true,
+              "legendFormat": "{{pod}}",
+              "refId": "C"
+            },
+            {
+              "editorMode": "code",
+              "expr": "sum by (pod) (kube_pod_container_resource_requests{namespace=~\"$namespace\",pod=~\"$pod\",resource=\"cpu\",unit=\"core\"}) - sum by (pod) (rate(container_cpu_usage_seconds_total{namespace=~\"$namespace\",pod=~\"$pod\",container!=\"\",container!=\"POD\"}[$__rate_interval]))",
+              "format": "table",
+              "instant": true,
+              "legendFormat": "{{pod}}",
+              "refId": "D"
+            },
+            {
+              "editorMode": "code",
+              "expr": "clamp_min(sum by (pod) (kube_pod_container_resource_requests{namespace=~\"$namespace\",pod=~\"$pod\",resource=\"cpu\",unit=\"core\"}) - sum by (pod) (rate(container_cpu_usage_seconds_total{namespace=~\"$namespace\",pod=~\"$pod\",container!=\"\",container!=\"POD\"}[$__rate_interval])), 0)",
+              "format": "table",
+              "instant": true,
+              "legendFormat": "{{pod}}",
+              "refId": "E"
+            },
+            {
+              "editorMode": "code",
+              "expr": "100 * clamp_min(sum by (pod) (kube_pod_container_resource_requests{namespace=~\"$namespace\",pod=~\"$pod\",resource=\"cpu\",unit=\"core\"}) - sum by (pod) (rate(container_cpu_usage_seconds_total{namespace=~\"$namespace\",pod=~\"$pod\",container!=\"\",container!=\"POD\"}[$__rate_interval])), 0) / clamp_min(sum by (pod) (kube_pod_container_resource_requests{namespace=~\"$namespace\",pod=~\"$pod\",resource=\"cpu\",unit=\"core\"}), 0.001)",
+              "format": "table",
+              "instant": true,
+              "legendFormat": "{{pod}}",
+              "refId": "F"
+            }
+          ],
+          "transformations": [
+            { "id": "joinByField", "options": { "byField": "pod", "mode": "outer" } },
+            {
+              "id": "organize",
+              "options": {
+                "excludeByName": { "Time": true },
+                "indexByName": { "pod": 0, "Value #A": 1, "Value #B": 2, "Value #C": 3, "Value #D": 4, "Value #E": 5, "Value #F": 6 },
+                "renameByName": {
+                  "Value #A": "cpu_usage_cores",
+                  "Value #B": "cpu_request_cores",
+                  "Value #C": "cpu_limit_cores",
+                  "Value #D": "cpu_delta_req_minus_usage_cores",
+                  "Value #E": "cpu_wasted_cores",
+                  "Value #F": "cpu_wasted_percent_of_request"
+                }
+              }
+            }
+          ],
+          "title": "CPU — usage / request / limit / delta / waste (per pod)",
+          "type": "table"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "gridPos": { "h": 9, "w": 24, "x": 0, "y": 10 },
+          "id": 3,
+          "options": {
+            "cellHeight": "lg",
+            "footer": { "countRows": false, "fields": "", "reducer": ["sum"], "show": false },
+            "frameIndex": 0,
+            "showHeader": true,
+            "sortBy": [{ "desc": true, "displayName": "mem_usage_working_set" }]
+          },
+          "fieldConfig": {
+            "defaults": {
+              "color": { "mode": "thresholds" },
+              "custom": { "align": "auto", "cellOptions": { "type": "auto" }, "filterable": false, "inspect": false },
+              "mappings": [],
+              "thresholds": { "mode": "absolute", "steps": [{ "color": "rgba(0,0,0,0)", "value": null }] }
+            },
+            "overrides": [
+              { "matcher": { "id": "byName", "options": "pod" }, "properties": [
+                { "id": "color", "value": { "fixedColor": "#A78BFA", "mode": "fixed" } },
+                { "id": "custom.width", "value": 220 }
+              ] },
+              { "matcher": { "id": "byName", "options": "mem_usage_working_set" }, "properties": [
+                { "id": "unit", "value": "bytes" },
+                { "id": "custom.cellOptions", "value": { "type": "color-background" } },
+                { "id": "thresholds", "value": { "mode": "absolute", "steps": [
+                  { "color": "#7C3AED33", "value": null },
+                  { "color": "#A855F744", "value": 1 },
+                  { "color": "#DB277755", "value": 536870912 },
+                  { "color": "#F472B666", "value": 2147483648 }
+                ] } }
+              ] },
+              { "matcher": { "id": "byName", "options": "mem_request" }, "properties": [
+                { "id": "unit", "value": "bytes" },
+                { "id": "custom.cellOptions", "value": { "type": "color-background" } },
+                { "id": "thresholds", "value": { "mode": "absolute", "steps": [
+                  { "color": "#818CF844", "value": null }
+                ] } }
+              ] },
+              { "matcher": { "id": "byName", "options": "mem_limit" }, "properties": [
+                { "id": "unit", "value": "bytes" },
+                { "id": "custom.cellOptions", "value": { "type": "color-background" } },
+                { "id": "thresholds", "value": { "mode": "absolute", "steps": [
+                  { "color": "#FB923C44", "value": null }
+                ] } }
+              ] },
+              { "matcher": { "id": "byName", "options": "mem_delta_req_minus_usage" }, "properties": [
+                { "id": "unit", "value": "bytes" },
+                { "id": "custom.cellOptions", "value": { "type": "color-text" } },
+                { "id": "thresholds", "value": { "mode": "absolute", "steps": [
+                  { "color": "#F43F5E", "value": null },
+                  { "color": "#FBBF24", "value": 0 },
+                  { "color": "#34D399", "value": 1 }
+                ] } }
+              ] },
+              { "matcher": { "id": "byName", "options": "mem_wasted_bytes" }, "properties": [
+                { "id": "unit", "value": "bytes" },
+                { "id": "custom.cellOptions", "value": { "type": "color-background" } },
+                { "id": "thresholds", "value": { "mode": "absolute", "steps": [
+                  { "color": "#14B8A633", "value": null },
+                  { "color": "#F59E0B55", "value": 104857600 },
+                  { "color": "#E11D4866", "value": 1073741824 }
+                ] } }
+              ] },
+              { "matcher": { "id": "byName", "options": "mem_wasted_percent_of_request" }, "properties": [
+                { "id": "unit", "value": "percent" },
+                { "id": "min", "value": 0 },
+                { "id": "max", "value": 100 },
+                { "id": "custom.cellOptions", "value": { "type": "gauge", "mode": "lcd", "valueDisplayMode": "color" } },
+                { "id": "thresholds", "value": { "mode": "absolute", "steps": [
+                  { "color": "#047857", "value": null },
+                  { "color": "#84CC16", "value": 15 },
+                  { "color": "#EAB308", "value": 30 },
+                  { "color": "#EA580C", "value": 50 },
+                  { "color": "#BE123C", "value": 70 }
+                ] } }
+              ] }
+            ]
+          },
+          "targets": [
+            {
+              "editorMode": "code",
+              "expr": "sum by (pod) (container_memory_working_set_bytes{namespace=~\"$namespace\",pod=~\"$pod\",container!=\"\",container!=\"POD\"})",
+              "format": "table",
+              "instant": true,
+              "legendFormat": "{{pod}}",
+              "refId": "A"
+            },
+            {
+              "editorMode": "code",
+              "expr": "sum by (pod) (kube_pod_container_resource_requests{namespace=~\"$namespace\",pod=~\"$pod\",resource=\"memory\",unit=\"byte\"})",
+              "format": "table",
+              "instant": true,
+              "legendFormat": "{{pod}}",
+              "refId": "B"
+            },
+            {
+              "editorMode": "code",
+              "expr": "sum by (pod) (kube_pod_container_resource_limits{namespace=~\"$namespace\",pod=~\"$pod\",resource=\"memory\",unit=\"byte\"})",
+              "format": "table",
+              "instant": true,
+              "legendFormat": "{{pod}}",
+              "refId": "C"
+            },
+            {
+              "editorMode": "code",
+              "expr": "sum by (pod) (kube_pod_container_resource_requests{namespace=~\"$namespace\",pod=~\"$pod\",resource=\"memory\",unit=\"byte\"}) - sum by (pod) (container_memory_working_set_bytes{namespace=~\"$namespace\",pod=~\"$pod\",container!=\"\",container!=\"POD\"})",
+              "format": "table",
+              "instant": true,
+              "legendFormat": "{{pod}}",
+              "refId": "D"
+            },
+            {
+              "editorMode": "code",
+              "expr": "clamp_min(sum by (pod) (kube_pod_container_resource_requests{namespace=~\"$namespace\",pod=~\"$pod\",resource=\"memory\",unit=\"byte\"}) - sum by (pod) (container_memory_working_set_bytes{namespace=~\"$namespace\",pod=~\"$pod\",container!=\"\",container!=\"POD\"}), 0)",
+              "format": "table",
+              "instant": true,
+              "legendFormat": "{{pod}}",
+              "refId": "E"
+            },
+            {
+              "editorMode": "code",
+              "expr": "100 * clamp_min(sum by (pod) (kube_pod_container_resource_requests{namespace=~\"$namespace\",pod=~\"$pod\",resource=\"memory\",unit=\"byte\"}) - sum by (pod) (container_memory_working_set_bytes{namespace=~\"$namespace\",pod=~\"$pod\",container!=\"\",container!=\"POD\"}), 0) / clamp_min(sum by (pod) (kube_pod_container_resource_requests{namespace=~\"$namespace\",pod=~\"$pod\",resource=\"memory\",unit=\"byte\"}), 1)",
+              "format": "table",
+              "instant": true,
+              "legendFormat": "{{pod}}",
+              "refId": "F"
+            }
+          ],
+          "transformations": [
+            { "id": "joinByField", "options": { "byField": "pod", "mode": "outer" } },
+            {
+              "id": "organize",
+              "options": {
+                "excludeByName": { "Time": true },
+                "indexByName": { "pod": 0, "Value #A": 1, "Value #B": 2, "Value #C": 3, "Value #D": 4, "Value #E": 5, "Value #F": 6 },
+                "renameByName": {
+                  "Value #A": "mem_usage_working_set",
+                  "Value #B": "mem_request",
+                  "Value #C": "mem_limit",
+                  "Value #D": "mem_delta_req_minus_usage",
+                  "Value #E": "mem_wasted_bytes",
+                  "Value #F": "mem_wasted_percent_of_request"
+                }
+              }
+            }
+          ],
+          "title": "Memory — usage / request / limit / delta / waste (per pod)",
+          "type": "table"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "gridPos": { "h": 10, "w": 24, "x": 0, "y": 19 },
+          "id": 4,
+          "options": {
+            "cellHeight": "lg",
+            "footer": { "countRows": false, "fields": "", "reducer": ["sum"], "show": false },
+            "frameIndex": 0,
+            "showHeader": true,
+            "sortBy": [{ "desc": true, "displayName": "pvc_used_bytes" }]
+          },
+          "fieldConfig": {
+            "defaults": {
+              "color": { "mode": "thresholds" },
+              "custom": { "align": "auto", "cellOptions": { "type": "auto" }, "filterable": false, "inspect": false },
+              "mappings": [],
+              "thresholds": { "mode": "absolute", "steps": [{ "color": "rgba(0,0,0,0)", "value": null }] }
+            },
+            "overrides": [
+              { "matcher": { "id": "byName", "options": "pvc" }, "properties": [
+                { "id": "color", "value": { "fixedColor": "#F472B6", "mode": "fixed" } },
+                { "id": "custom.width", "value": 240 }
+              ] },
+              { "matcher": { "id": "byName", "options": "pvc_used_bytes" }, "properties": [
+                { "id": "unit", "value": "bytes" },
+                { "id": "custom.cellOptions", "value": { "type": "color-background" } },
+                { "id": "thresholds", "value": { "mode": "absolute", "steps": [
+                  { "color": "#22C55E33", "value": null },
+                  { "color": "#EAB30844", "value": 1073741824 },
+                  { "color": "#F9731655", "value": 53687091200 }
+                ] } }
+              ] },
+              { "matcher": { "id": "byName", "options": "pvc_capacity_bytes" }, "properties": [
+                { "id": "unit", "value": "bytes" },
+                { "id": "custom.cellOptions", "value": { "type": "color-background" } },
+                { "id": "thresholds", "value": { "mode": "absolute", "steps": [
+                  { "color": "#64748B44", "value": null }
+                ] } }
+              ] },
+              { "matcher": { "id": "byName", "options": "pvc_available_bytes" }, "properties": [
+                { "id": "unit", "value": "bytes" },
+                { "id": "custom.cellOptions", "value": { "type": "color-background" } },
+                { "id": "thresholds", "value": { "mode": "absolute", "steps": [
+                  { "color": "#DC262655", "value": null },
+                  { "color": "#FBBF2244", "value": 104857600 },
+                  { "color": "#22C55E55", "value": 1073741824 }
+                ] } }
+              ] },
+              { "matcher": { "id": "byName", "options": "pvc_used_percent" }, "properties": [
+                { "id": "unit", "value": "percent" },
+                { "id": "min", "value": 0 },
+                { "id": "max", "value": 100 },
+                { "id": "custom.cellOptions", "value": { "type": "gauge", "mode": "lcd", "valueDisplayMode": "color" } },
+                { "id": "thresholds", "value": { "mode": "absolute", "steps": [
+                  { "color": "#0D9488", "value": null },
+                  { "color": "#22C55E", "value": 40 },
+                  { "color": "#EAB308", "value": 60 },
+                  { "color": "#F97316", "value": 75 },
+                  { "color": "#DC2626", "value": 85 },
+                  { "color": "#7F1D1D", "value": 95 }
+                ] } }
+              ] }
+            ]
+          },
+          "targets": [
+            {
+              "editorMode": "code",
+              "expr": "kubelet_volume_stats_used_bytes{namespace=~\"$namespace\",persistentvolumeclaim=~\"$pvc\"}",
+              "format": "table",
+              "instant": true,
+              "legendFormat": "{{persistentvolumeclaim}}",
+              "refId": "A"
+            },
+            {
+              "editorMode": "code",
+              "expr": "kubelet_volume_stats_capacity_bytes{namespace=~\"$namespace\",persistentvolumeclaim=~\"$pvc\"}",
+              "format": "table",
+              "instant": true,
+              "legendFormat": "{{persistentvolumeclaim}}",
+              "refId": "B"
+            },
+            {
+              "editorMode": "code",
+              "expr": "kubelet_volume_stats_available_bytes{namespace=~\"$namespace\",persistentvolumeclaim=~\"$pvc\"}",
+              "format": "table",
+              "instant": true,
+              "legendFormat": "{{persistentvolumeclaim}}",
+              "refId": "C"
+            },
+            {
+              "editorMode": "code",
+              "expr": "100 * (kubelet_volume_stats_used_bytes{namespace=~\"$namespace\",persistentvolumeclaim=~\"$pvc\"} / clamp_min(kubelet_volume_stats_capacity_bytes{namespace=~\"$namespace\",persistentvolumeclaim=~\"$pvc\"}, 1))",
+              "format": "table",
+              "instant": true,
+              "legendFormat": "{{persistentvolumeclaim}}",
+              "refId": "D"
+            }
+          ],
+          "transformations": [
+            { "id": "joinByField", "options": { "byField": "persistentvolumeclaim", "mode": "outer" } },
+            {
+              "id": "organize",
+              "options": {
+                "excludeByName": { "Time": true },
+                "indexByName": { "persistentvolumeclaim": 0, "Value #A": 1, "Value #B": 2, "Value #C": 3, "Value #D": 4 },
+                "renameByName": {
+                  "persistentvolumeclaim": "pvc",
+                  "Value #A": "pvc_used_bytes",
+                  "Value #B": "pvc_capacity_bytes",
+                  "Value #C": "pvc_available_bytes",
+                  "Value #D": "pvc_used_percent"
+                }
+              }
+            }
+          ],
+          "title": "Volumes — PVC used / capacity / available / % fill",
+          "type": "table"
+        }
+      ],
+      "refresh": "30s",
+      "schemaVersion": 39,
+      "style": "dark",
+      "tags": ["kubernetes", "sizing", "tables", "performance", "colorful"],
+      "templating": {
+        "list": [
+          {
+            "current": { "selected": false, "text": "default", "value": "default" },
+            "datasource": { "type": "prometheus", "uid": "prometheus" },
+            "definition": "label_values(kube_pod_info, namespace)",
+            "hide": 0,
+            "includeAll": true,
+            "label": "Namespace",
+            "multi": true,
+            "name": "namespace",
+            "options": [],
+            "query": { "query": "label_values(kube_pod_info, namespace)", "refId": "StandardVariableQuery" },
+            "refresh": 2,
+            "sort": 1,
+            "type": "query"
+          },
+          {
+            "current": { "selected": false, "text": ".*", "value": ".*" },
+            "datasource": { "type": "prometheus", "uid": "prometheus" },
+            "definition": "label_values(kube_pod_info{namespace=~\"$namespace\"}, pod)",
+            "hide": 0,
+            "includeAll": true,
+            "label": "Pod",
+            "multi": true,
+            "name": "pod",
+            "options": [],
+            "query": { "query": "label_values(kube_pod_info{namespace=~\"$namespace\"}, pod)", "refId": "StandardVariableQuery" },
+            "refresh": 2,
+            "sort": 1,
+            "type": "query"
+          },
+          {
+            "current": { "selected": false, "text": ".*", "value": ".*" },
+            "datasource": { "type": "prometheus", "uid": "prometheus" },
+            "definition": "label_values(kubelet_volume_stats_used_bytes{namespace=~\"$namespace\"}, persistentvolumeclaim)",
+            "hide": 0,
+            "includeAll": true,
+            "label": "PVC",
+            "multi": true,
+            "name": "pvc",
+            "options": [],
+            "query": { "query": "label_values(kubelet_volume_stats_used_bytes{namespace=~\"$namespace\"}, persistentvolumeclaim)", "refId": "StandardVariableQuery" },
+            "refresh": 2,
+            "sort": 1,
+            "type": "query"
+          }
+        ]
+      },
+      "time": { "from": "now-1h", "to": "now" },
+      "timezone": "browser",
+      "title": "Kubernetes Pod Resources - Sizing Tables (CPU/Memory/Volumes)",
+      "uid": "k8s-pod-sizing-tables",
+      "version": 1
+    }
