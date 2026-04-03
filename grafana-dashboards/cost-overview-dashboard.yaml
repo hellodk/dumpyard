@@ -1,0 +1,712 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-dashboard-cost-overview
+  namespace: default
+  labels:
+    grafana_dashboard: "1"
+  annotations:
+    grafana_folder: Cost
+data:
+  cost-overview.json: |-
+    {
+      "annotations": {
+        "list": [
+          {
+            "builtIn": 1,
+            "datasource": {
+              "type": "grafana",
+              "uid": "-- Grafana --"
+            },
+            "enable": true,
+            "hide": true,
+            "iconColor": "rgba(0, 211, 255, 1)",
+            "name": "Annotations & Alerts",
+            "type": "dashboard"
+          }
+        ]
+      },
+      "description": "Cluster and namespace cost allocation using OpenCost-style Prometheus metrics. USD + INR.",
+      "editable": true,
+      "fiscalYearStartMonth": 0,
+      "graphTooltip": 1,
+      "id": null,
+      "links": [
+        {
+          "asDropdown": false,
+          "icon": "external link",
+          "includeVars": true,
+          "keepTime": true,
+          "tags": [],
+          "targetBlank": false,
+          "title": "Namespace detail",
+          "tooltip": "",
+          "type": "link",
+          "url": "/d/cost-namespace/kubernetes-cost-by-namespace?${__url_time_range}&var-namespace=${namespace}"
+        }
+      ],
+      "panels": [
+        {
+          "collapsed": false,
+          "gridPos": {
+            "h": 1,
+            "w": 24,
+            "x": 0,
+            "y": 0
+          },
+          "id": 1,
+          "panels": [],
+          "title": "Cost overview (OpenCost metrics)",
+          "type": "row"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "description": "Requires OpenCost (or compatible) scraping node_total_hourly_cost. Values are instantaneous hourly **rates** in USD.",
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "thresholds"
+              },
+              "decimals": 2,
+              "mappings": [],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": null
+                  }
+                ]
+              },
+              "unit": "currencyUSD"
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 5,
+            "w": 24,
+            "x": 0,
+            "y": 1
+          },
+          "id": 2,
+          "options": {
+            "code": {
+              "language": "plaintext",
+              "showLineNumbers": false,
+              "showMiniMap": false
+            },
+            "content": "**Prerequisites:** Prometheus scrapes OpenCost; metrics include `node_total_hourly_cost`, `container_cpu_allocation`,\n`container_memory_allocation_bytes`, `pod_pvc_allocation`, `node_cpu_hourly_cost`, `node_ram_hourly_cost`, `pv_hourly_cost`.\nThis dashboard shows **compute/memory/storage allocation** cost rates. AWS-wide line items (RDS, S3, untagged transfer)\nneed CUR/Athena or separate panels. **Air-gapped:** use custom pricing in OpenCost; update `inr_per_usd` manually.",
+            "mode": "markdown"
+          },
+          "title": "Notes",
+          "type": "text"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "thresholds"
+              },
+              "decimals": 2,
+              "mappings": [],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "blue",
+                    "value": null
+                  }
+                ]
+              },
+              "unit": "currencyUSD"
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 4,
+            "w": 8,
+            "x": 0,
+            "y": 6
+          },
+          "id": 3,
+          "options": {
+            "colorMode": "value",
+            "graphMode": "area",
+            "justifyMode": "auto",
+            "orientation": "auto",
+            "reduceOptions": {
+              "calcs": [
+                "lastNotNull"
+              ],
+              "fields": "",
+              "values": false
+            },
+            "textMode": "auto"
+          },
+          "targets": [
+            {
+              "editorMode": "code",
+              "expr": "sum(node_total_hourly_cost)",
+              "refId": "A"
+            }
+          ],
+          "title": "Cluster hourly rate (USD)",
+          "type": "stat"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "thresholds"
+              },
+              "decimals": 2,
+              "mappings": [],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "purple",
+                    "value": null
+                  }
+                ]
+              },
+              "unit": "currencyINR"
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 4,
+            "w": 8,
+            "x": 8,
+            "y": 6
+          },
+          "id": 4,
+          "options": {
+            "colorMode": "value",
+            "graphMode": "area",
+            "justifyMode": "auto",
+            "orientation": "auto",
+            "reduceOptions": {
+              "calcs": [
+                "lastNotNull"
+              ],
+              "fields": "",
+              "values": false
+            },
+            "textMode": "auto"
+          },
+          "targets": [
+            {
+              "editorMode": "code",
+              "expr": "sum(node_total_hourly_cost)",
+              "refId": "A",
+              "hide": true
+            },
+            {
+              "datasource": {
+                "type": "__expr__",
+                "uid": "__expr__"
+              },
+              "expression": "$A * ${inr_per_usd}",
+              "hide": false,
+              "refId": "B",
+              "type": "math"
+            }
+          ],
+          "title": "Cluster hourly rate (INR)",
+          "type": "stat"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "thresholds"
+              },
+              "decimals": 0,
+              "mappings": [],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "semi-dark-green",
+                    "value": null
+                  }
+                ]
+              },
+              "unit": "currencyUSD"
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 4,
+            "w": 8,
+            "x": 16,
+            "y": 6
+          },
+          "id": 5,
+          "options": {
+            "colorMode": "value",
+            "graphMode": "none",
+            "justifyMode": "auto",
+            "orientation": "auto",
+            "reduceOptions": {
+              "calcs": [
+                "lastNotNull"
+              ],
+              "fields": "",
+              "values": false
+            },
+            "textMode": "auto"
+          },
+          "targets": [
+            {
+              "editorMode": "code",
+              "expr": "sum(node_total_hourly_cost) * 730",
+              "refId": "A"
+            }
+          ],
+          "title": "~Monthly node run-rate (USD, 730h est.)",
+          "type": "stat"
+        },
+        {
+          "collapsed": false,
+          "gridPos": {
+            "h": 1,
+            "w": 24,
+            "x": 0,
+            "y": 10
+          },
+          "id": 6,
+          "panels": [],
+          "title": "By namespace \u2014 workload allocation (CPU / Memory / Storage)",
+          "type": "row"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "palette-classic"
+              },
+              "custom": {
+                "axisBorderShow": false,
+                "axisCenteredZero": false,
+                "axisColorMode": "text",
+                "axisPlacement": "auto",
+                "drawStyle": "line",
+                "fillOpacity": 20,
+                "gradientMode": "opacity",
+                "hideFrom": {
+                  "legend": false,
+                  "tooltip": false,
+                  "viz": false
+                },
+                "lineInterpolation": "smooth",
+                "lineWidth": 2,
+                "pointSize": 5,
+                "scaleDistribution": {
+                  "type": "linear"
+                },
+                "showPoints": "never",
+                "spanNulls": true,
+                "stacking": {
+                  "group": "A",
+                  "mode": "normal"
+                },
+                "thresholdsStyle": {
+                  "mode": "off"
+                }
+              },
+              "decimals": 2,
+              "mappings": [],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": null
+                  }
+                ]
+              },
+              "unit": "currencyUSD"
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 10,
+            "w": 24,
+            "x": 0,
+            "y": 11
+          },
+          "id": 7,
+          "options": {
+            "legend": {
+              "calcs": [
+                "mean",
+                "lastNotNull"
+              ],
+              "displayMode": "table",
+              "placement": "right",
+              "showLegend": true
+            },
+            "tooltip": {
+              "mode": "multi",
+              "sort": "desc"
+            }
+          },
+          "targets": [
+            {
+              "editorMode": "code",
+              "expr": "sum by (namespace) (\n  avg by (container, node, namespace, pod) (container_cpu_allocation)\n  * on(node) group_left()\n  avg by (node) (node_cpu_hourly_cost)\n)",
+              "legendFormat": "CPU \u2014 {{namespace}}",
+              "refId": "A"
+            },
+            {
+              "editorMode": "code",
+              "expr": "sum by (namespace) (\n  avg by (container, node, namespace, pod) (container_memory_allocation_bytes) / 1073741824\n  * on(node) group_left()\n  avg by (node) (node_ram_hourly_cost)\n)",
+              "legendFormat": "Memory \u2014 {{namespace}}",
+              "refId": "B"
+            },
+            {
+              "editorMode": "code",
+              "expr": "sum by (namespace) (\n  avg by (persistentvolume, namespace, pod) (pod_pvc_allocation) / 1073741824\n  * on(persistentvolume) group_left()\n  avg by (persistentvolume) (pv_hourly_cost)\n)",
+              "legendFormat": "Storage \u2014 {{namespace}}",
+              "refId": "C"
+            }
+          ],
+          "title": "Hourly allocation rate by namespace (stacked: CPU + Memory + Storage)",
+          "type": "timeseries"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "palette-classic"
+              },
+              "custom": {
+                "hideFrom": {
+                  "legend": false,
+                  "tooltip": false,
+                  "viz": false
+                }
+              },
+              "decimals": 2,
+              "mappings": [],
+              "unit": "currencyUSD"
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 10,
+            "w": 12,
+            "x": 0,
+            "y": 21
+          },
+          "id": 8,
+          "options": {
+            "displayLabels": [
+              "name",
+              "value"
+            ],
+            "legend": {
+              "displayMode": "list",
+              "placement": "right",
+              "showLegend": true
+            },
+            "pieType": "donut",
+            "reduceOptions": {
+              "calcs": [
+                "lastNotNull"
+              ],
+              "fields": "",
+              "values": false
+            },
+            "sort": "desc",
+            "tooltip": {
+              "mode": "single",
+              "sort": "none"
+            }
+          },
+          "targets": [
+            {
+              "editorMode": "code",
+              "expr": "sum by (namespace) (\n  sum by (namespace) (\n    avg by (container, node, namespace, pod) (container_cpu_allocation)\n    * on(node) group_left() avg by (node) (node_cpu_hourly_cost)\n  )\n  + sum by (namespace) (\n    avg by (container, node, namespace, pod) (container_memory_allocation_bytes) / 1073741824\n    * on(node) group_left() avg by (node) (node_ram_hourly_cost)\n  )\n  + sum by (namespace) (\n    avg by (persistentvolume, namespace, pod) (pod_pvc_allocation) / 1073741824\n    * on(persistentvolume) group_left() avg by (persistentvolume) (pv_hourly_cost)\n  )\n)",
+              "legendFormat": "{{namespace}}",
+              "refId": "A"
+            }
+          ],
+          "title": "CPU cost share by namespace (latest)",
+          "type": "piechart"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "thresholds"
+              },
+              "custom": {
+                "align": "auto",
+                "cellOptions": {
+                  "type": "auto"
+                },
+                "filterable": true,
+                "inspect": false
+              },
+              "decimals": 2,
+              "mappings": [],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": null
+                  }
+                ]
+              },
+              "unit": "currencyUSD"
+            },
+            "overrides": [
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "namespace"
+                },
+                "properties": [
+                  {
+                    "id": "links",
+                    "value": [
+                      {
+                        "title": "Namespace drill-down",
+                        "url": "/d/cost-namespace/kubernetes-cost-by-namespace?${__url_time_range}&var-namespace=${__data.fields.namespace}",
+                        "targetBlank": false
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          "gridPos": {
+            "h": 10,
+            "w": 12,
+            "x": 12,
+            "y": 21
+          },
+          "id": 9,
+          "options": {
+            "cellHeight": "sm",
+            "footer": {
+              "countRows": false,
+              "fields": "",
+              "reducer": [
+                "sum"
+              ],
+              "show": false
+            },
+            "showHeader": true,
+            "sortBy": [
+              {
+                "desc": true,
+                "displayName": "total_hourly_usd"
+              }
+            ]
+          },
+          "targets": [
+            {
+              "editorMode": "code",
+              "expr": "sort_desc(sum by (namespace) (\n  sum by (namespace) (\n    avg by (container, node, namespace, pod) (container_cpu_allocation)\n    * on(node) group_left() avg by (node) (node_cpu_hourly_cost)\n  )\n  + sum by (namespace) (\n    avg by (container, node, namespace, pod) (container_memory_allocation_bytes) / 1073741824\n    * on(node) group_left() avg by (node) (node_ram_hourly_cost)\n  )\n  + sum by (namespace) (\n    avg by (persistentvolume, namespace, pod) (pod_pvc_allocation) / 1073741824\n    * on(persistentvolume) group_left() avg by (persistentvolume) (pv_hourly_cost)\n  )\n))",
+              "format": "table",
+              "instant": true,
+              "refId": "A"
+            }
+          ],
+          "transformations": [
+            {
+              "id": "organize",
+              "options": {
+                "excludeByName": {
+                  "Time": true
+                },
+                "indexByName": {},
+                "renameByName": {
+                  "Value": "total_hourly_usd",
+                  "namespace": "namespace"
+                }
+              }
+            }
+          ],
+          "title": "Namespaces ranked by total hourly allocation (USD)",
+          "type": "table"
+        },
+        {
+          "collapsed": false,
+          "gridPos": {
+            "h": 1,
+            "w": 24,
+            "x": 0,
+            "y": 31
+          },
+          "id": 10,
+          "panels": [],
+          "title": "Service-style split (within metrics available)",
+          "type": "row"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "palette-classic"
+              },
+              "decimals": 2,
+              "mappings": [],
+              "unit": "currencyUSD"
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 6,
+            "w": 24,
+            "x": 0,
+            "y": 32
+          },
+          "id": 11,
+          "options": {
+            "displayMode": "gradient",
+            "minVizHeight": 10,
+            "minVizWidth": 0,
+            "namePlacement": "auto",
+            "orientation": "horizontal",
+            "reduceOptions": {
+              "calcs": [
+                "lastNotNull"
+              ],
+              "fields": "",
+              "values": false
+            },
+            "showUnfilled": true,
+            "sizing": "auto",
+            "valueMode": "color"
+          },
+          "targets": [
+            {
+              "editorMode": "code",
+              "expr": "sum(\n  avg by (container, node, namespace, pod) (container_cpu_allocation)\n  * on(node) group_left()\n  avg by (node) (node_cpu_hourly_cost)\n)",
+              "legendFormat": "CPU (all namespaces)",
+              "refId": "A"
+            },
+            {
+              "editorMode": "code",
+              "expr": "sum(\n  avg by (container, node, namespace, pod) (container_memory_allocation_bytes) / 1073741824\n  * on(node) group_left()\n  avg by (node) (node_ram_hourly_cost)\n)",
+              "legendFormat": "Memory (all namespaces)",
+              "refId": "B"
+            },
+            {
+              "editorMode": "code",
+              "expr": "sum(\n  avg by (persistentvolume, namespace, pod) (pod_pvc_allocation) / 1073741824\n  * on(persistentvolume) group_left()\n  avg by (persistentvolume) (pv_hourly_cost)\n)",
+              "legendFormat": "PVC storage (all namespaces)",
+              "refId": "C"
+            }
+          ],
+          "title": "Cluster-wide: CPU vs Memory vs Storage (hourly USD rate)",
+          "type": "bargauge"
+        }
+      ],
+      "refresh": false,
+      "schemaVersion": 39,
+      "style": "dark",
+      "tags": [
+        "kubernetes",
+        "cost",
+        "opencost",
+        "finops"
+      ],
+      "templating": {
+        "list": [
+          {
+            "current": {
+              "selected": true,
+              "text": "83",
+              "value": "83"
+            },
+            "hide": 0,
+            "label": "INR per 1 USD",
+            "name": "inr_per_usd",
+            "options": [
+              {
+                "selected": true,
+                "text": "83",
+                "value": "83"
+              }
+            ],
+            "query": "83",
+            "skipUrlSync": false,
+            "type": "custom"
+          },
+          {
+            "current": {
+              "selected": true,
+              "text": "All",
+              "value": "$__all"
+            },
+            "datasource": {
+              "type": "prometheus",
+              "uid": "prometheus"
+            },
+            "definition": "label_values(kube_pod_info, namespace)",
+            "hide": 0,
+            "includeAll": true,
+            "label": "Namespace (for link)",
+            "multi": true,
+            "name": "namespace",
+            "options": [],
+            "query": {
+              "query": "label_values(kube_pod_info, namespace)",
+              "refId": "StandardVariableQuery"
+            },
+            "refresh": 2,
+            "regex": "",
+            "sort": 1,
+            "type": "query"
+          }
+        ]
+      },
+      "time": {
+        "from": "now-24h",
+        "to": "now"
+      },
+      "timepicker": {},
+      "timezone": "browser",
+      "title": "Kubernetes Cost \u2014 Overview",
+      "uid": "cost-overview",
+      "version": 1
+    }

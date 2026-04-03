@@ -373,7 +373,7 @@ data:
           "type": "timeseries"
         }
       ],
-      "refresh": "30s",
+      "refresh": false,
       "schemaVersion": 39,
       "style": "dark",
       "tags": ["kubernetes", "sizing", "performance"],
